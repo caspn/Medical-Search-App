@@ -635,12 +635,10 @@ function fileId(u){
   return m2 ? m2[1] : null;
 }
 
-// Costruisce l'URL API gviz/tq del foglio Google Sheets nativo
-// Questo endpoint non ha problemi CORS ed è l'unico affidabile lato browser
+// URL export CSV — nessun limite di righe (gviz/tq si fermava a ~500)
 function gvizUrl(){
-  const u = shtU(); // letto da localStorage, mai hardcoded
-  const id = shtId(u);
-  return id ? 'https://docs.google.com/spreadsheets/d/' + id + '/gviz/tq?tqx=out:json' : null;
+  const id = shtId(shtU());
+  return id ? 'https://docs.google.com/spreadsheets/d/' + id + '/export?format=csv&id=' + id : null;
 }
 
 function esc(t){ return (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -916,20 +914,14 @@ async function loadSheet(){
     const resp = await fetch(u);
     if(!resp.ok) throw new Error('HTTP ' + resp.status + ' — il foglio potrebbe non essere pubblico');
     const text = await resp.text();
-    // Il formato gviz restituisce: /*O_o*/\ngoogle.visualization.Query.setResponse({...})
-    const start = text.indexOf('(');
-    const end   = text.lastIndexOf(')');
-    if(start < 0 || end < 0) throw new Error('Risposta Google non riconosciuta. Formato inatteso:\n' + text.substring(0,200));
-    let json;
-    try{ json = JSON.parse(text.substring(start+1, end)); }
-    catch(pe){ throw new Error('Errore parsing JSON: ' + pe.message + '\nTesto: ' + text.substring(start+1, start+200)); }
-    if(!json.table) throw new Error('Struttura dati mancante (json.table assente)');
-    if(!json.table.rows || !json.table.rows.length) throw new Error('Il foglio è vuoto o non ha righe dati');
-    sheetData = json.table.rows.map(row => {
+    if(!text || !text.trim()) throw new Error('Il foglio è vuoto o non accessibile');
+    const rows = parseCSV(text);
+    if(rows.length < 2) throw new Error('Il foglio è vuoto o ha solo l\'intestazione');
+    const dataRows = rows.slice(1);
+    const letters = 'ABCDEFGHIJKLMNO'.split('');
+    sheetData = dataRows.map(cols => {
       const o = {};
-      'ABCDEFGHIJKLMNO'.split('').forEach((l, i) => {
-        o[l] = row.c && row.c[i] && row.c[i].v != null ? String(row.c[i].v).trim() : '';
-      });
+      letters.forEach((l, i) => { o[l] = cols[i] !== undefined ? String(cols[i]).trim() : ''; });
       return o;
     }).filter(r => r.A || r.B || r.C || r.D);
     if(!sheetData.length) throw new Error('Nessuna riga valida trovata (le colonne A-D sono tutte vuote?)');
@@ -940,6 +932,31 @@ async function loadSheet(){
     console.error('loadSheet error:', e);
   }
 }
+
+// Parser CSV completo — gestisce campi tra virgolette, virgole nei valori
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  const str = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  for(let i = 0; i < str.length; i++){
+    const ch = str[i];
+    if(inQuotes){
+      if(ch === '"'){
+        if(str[i+1] === '"'){ field += '"'; i++; }
+        else { inQuotes = false; }
+      } else { field += ch; }
+    } else {
+      if(ch === '"'){ inQuotes = true; }
+      else if(ch === ','){ row.push(field); field = ''; }
+      else if(ch === '\n'){ row.push(field); field = ''; rows.push(row); row = []; }
+      else { field += ch; }
+    }
+  }
+  row.push(field);
+  if(row.some(f => f !== '')) rows.push(row);
+  return rows;
+}
+
 function showDbg(msg){
   let d = el('dbg-bar');
   if(!d){
@@ -1286,23 +1303,22 @@ async function testSheet(inputId, resId, openId){
     return;
   }
   showTR(resId, 'wrn', 'Test in corso…', 'Connessione al foglio Google Sheets in corso…');
-  const testUrl = 'https://docs.google.com/spreadsheets/d/' + id + '/gviz/tq?tqx=out:json';
+  const testUrl = 'https://docs.google.com/spreadsheets/d/' + id + '/export?format=csv&id=' + id;
   try{
     const resp = await fetch(testUrl);
     if(!resp.ok) throw new Error('HTTP ' + resp.status + ' — ' + resp.statusText);
     const text = await resp.text();
-    const json = JSON.parse(text.substring(text.indexOf('(') + 1, text.lastIndexOf(')')));
-    const nr = json.table.rows.length, nc = json.table.cols.length;
-    const prev = json.table.rows[0]
-      ? json.table.rows[0].c.slice(0,3).map(c => c && c.v != null ? String(c.v) : '').filter(Boolean).join(' · ')
-      : '';
+    const rows = parseCSV(text);
+    const nr = Math.max(0, rows.length - 1); // esclude intestazione
+    const nc = rows[0] ? rows[0].length : 0;
+    const prev = rows[1] ? rows[1].slice(0,3).filter(Boolean).join(' · ') : '';
     el(openId).href = url; el(openId).style.display = 'inline-flex';
     showTR(resId, 'ok', 'Foglio raggiunto con successo!',
       'Il foglio è accessibile. I dati verranno caricati ad ogni login.',
       [['ID Foglio', id],
-       ['Righe dati', nr + ' righe trovate'],
+       ['Righe dati', nr + ' righe trovate (senza limite)'],
        ['Colonne', nc + ''],
-       ['Prima riga', prev || '(vuota)']]);
+       ['Prima riga dati', prev || '(vuota)']]);
   } catch(e){
     el(openId).href = url; el(openId).style.display = 'inline-flex';
     showTR(resId, 'err', 'Impossibile accedere al foglio',
