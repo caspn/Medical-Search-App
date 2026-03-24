@@ -648,6 +648,14 @@ function gvizUrl(){
 }
 
 function esc(t){ return (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escEmail(t){
+  const v = (t||'').trim();
+  if(!v) return '<span style="color:var(--g300)">—</span>';
+  // Controlla se è un indirizzo email valido
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+    ? '<a href="mailto:'+v+'" onclick="event.stopPropagation()" style="color:var(--blue);text-decoration:underline;word-break:break-all">'+v+'</a>'
+    : v;
+}
 function norm(t){ return (t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
 function trunc(s,n=58){ return s.length>n ? s.slice(0,n-1)+'…' : s; }
 
@@ -1232,7 +1240,8 @@ function renderRes(){
        + '<div class="tw"><table class="dtbl"><tbody>';
     cols.forEach(([k,lbl]) => {
       const cellStyle = k === 'H' ? ' style="color:var(--blue);font-weight:700"' : '';
-      h += '<tr><td>'+lbl+'</td><td'+cellStyle+'>'+(esc(r[k])||'<span style="color:var(--g300)">—</span>')+'</td></tr>';
+      const cellVal = k==='N' ? escEmail(r[k]) : (esc(r[k])||'<span style="color:var(--g300)">—</span>');
+      h += '<tr><td>'+lbl+'</td><td'+cellStyle+'>'+cellVal+'</td></tr>';
     });
     h += '</tbody></table></div></div>';
   });
@@ -1275,7 +1284,7 @@ function goDetail(){
     ['L','Membro che Segue'],
     ['M','Telefono Contatto'],
     ['N','E-mail']
-  ].map(([c,l]) => '<tr><td>'+l+'</td><td>'+(esc(r[c])||'<span style="color:var(--g300)">—</span>')+'</td></tr>').join('');
+  ].map(([c,l]) => '<tr><td>'+l+'</td><td>'+(c==='N' ? escEmail(r[c]) : (esc(r[c])||'<span style="color:var(--g300)">—</span>'))+'</td></tr>').join('');
   goTo('detail');
 }
 
