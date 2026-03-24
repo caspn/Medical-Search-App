@@ -193,6 +193,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
 /* Colonna Spec. Principale: 20ch, centrata, mai a capo */
 .col-sp1{white-space:nowrap;text-align:center !important;font-size:.78rem !important;padding-left:8px !important;padding-right:8px !important;}
 </style>
+<script src="config.js"></script>
 </head>
 <body>
 
@@ -345,7 +346,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
     <div class="divider"></div>
     <div class="sec-lbl" style="color:var(--blue)">🌐 Configurazione per GitHub Pages</div>
     <p style="font-size:.82rem;color:var(--g500);margin-bottom:10px;line-height:1.6">
-      Per far funzionare l'app su <b>tutti i dispositivi senza setup</b>, copia il blocco qui sotto e incollalo nel file HTML (sostituendo il blocco <code style="background:var(--g100);padding:1px 5px;border-radius:4px">const DEF = {...}</code>), poi ricarica il file su GitHub.
+      Per far funzionare l'app su <b>tutti i dispositivi senza setup</b>, copia il blocco qui sotto e incollalo nel file <code style="background:var(--g100);padding:1px 5px;border-radius:4px">config.js</code> (sostituendo il contenuto esistente), poi carica <b>entrambi i file</b> su GitHub.
     </p>
     <div style="background:#0f172a;border-radius:8px;padding:14px;margin-bottom:10px;position:relative">
       <pre id="def-code" style="color:#7dd3fc;font-size:.75rem;font-family:monospace;overflow-x:auto;white-space:pre;margin:0"></pre>
@@ -585,26 +586,21 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
 // ── CHIAVI LOCALSTORAGE ────────────────────────────────────────
 const K = { A:'_adm', P:'_pub', S:'_sht', D:'_done' };
 
-// ── VALORI EMBEDDED ────────────────────────────────────────────
-// Questi valori vengono letti da TUTTI i dispositivi come punto di partenza.
-// L'amministratore li imposta UNA VOLTA dal pannello Admin → Esporta,
-// poi incolla i valori qui sotto e ricarica il file su GitHub.
-// ┌─────────────────────────────────────────────────────────────┐
-const DEF = {
-  A: 'AdmincasPN17886',
-  P: 'ComSanPN123',
-  S: 'https://docs.google.com/spreadsheets/d/1nbPeGUsGFZxqNAfUUihnNNYv19SJ5xJ8fHc6W7dipag/edit?gid=1167140769#gid=1167140769',
-  D: '1'
-};
-// └─────────────────────────────────────────────────────────────┘
+// ── VALORI DI CONFIGURAZIONE ───────────────────────────────────
+// I valori sono caricati da config.js (offuscati) e deoffuscati a runtime.
+// Non sono presenti password in chiaro in questo file.
+function _defVal(k){
+  try{ return (window.__CFG && window.__CFG[k]) ? dob(window.__CFG[k]) : ''; }
+  catch(e){ return ''; }
+}
 
 const sg    = k => localStorage.getItem(k);
 const ss    = (k,v) => localStorage.setItem(k,v);
-const admP  = () => sg(K.A) || DEF.A;
-const pubP  = () => sg(K.P) || DEF.P;
-const shtU  = () => sg(K.S) || DEF.S;
-// Configurata se: localStorage ha già il setup OPPURE DEF.S è valorizzato nel codice
-const cfgOk = () => sg(K.D) === '1' || DEF.S.trim() !== '';
+const admP  = () => sg(K.A) || _defVal('A');
+const pubP  = () => sg(K.P) || _defVal('P');
+const shtU  = () => sg(K.S) || _defVal('S');
+// Configurata se: localStorage ha già il setup OPPURE config.js ha S valorizzato
+const cfgOk = () => sg(K.D) === '1' || _defVal('S').trim() !== '';
 
 // Chiave versione password pubblica: incrementata ogni volta che l'admin la cambia.
 // Ogni dispositivo con bio salva la versione al momento dell'impostazione.
@@ -767,11 +763,11 @@ function openAdmPanel(){
 function updateDefCode(){
   const box = el('def-code');
   if(!box) return;
-  const a = admP().replace(/'/g,"\\'");
-  const p = pubP().replace(/'/g,"\\'");
-  const s = shtU().replace(/'/g,"\\'");
+  const a = obf(admP());
+  const p = obf(pubP());
+  const s = obf(shtU());
   box.textContent =
-`const DEF = {\n  A: '${a}',\n  P: '${p}',\n  S: '${s}',\n  D: '1'\n};`;
+`window.__CFG = {\n  A: '${a}',\n  P: '${p}',\n  S: '${s}',\n  D: 'fA=='\n};`;
 }
 
 function copyDefCode(){
