@@ -662,11 +662,17 @@ el('m-psw').addEventListener('keydown', e => {
   if(e.key === 'Escape') closeAdmModal();
 });
 function doAdmLogin(){
-  if(el('m-psw').value === admP()){
+  const psw = el('m-psw').value;
+  const correct = admP(); // legge SEMPRE dal localStorage (o default 'admin' se non ancora impostata)
+  if(psw === correct){
+    el('m-err').classList.remove('on');
+    el('m-psw').value = '';
     closeAdmModal();
     cfgOk() ? openAdmPanel() : openSetup();
   } else {
+    el('m-err').textContent = 'Password non corretta';
     el('m-err').classList.add('on');
+    el('m-psw').select();
   }
 }
 
@@ -713,9 +719,13 @@ function openAdmPanel(){
   el('atr-sh').className = 'tres';
   el('aoa-sh').style.display = 'none';
   el('adm-status').innerHTML = `
-    <div class="strow"><div class="stdot ok"></div><b>Password amministratore:</b>&nbsp;configurata</div>
-    <div class="strow"><div class="stdot ok"></div><b>Password pubblica:</b>&nbsp;configurata</div>
-    <div class="strow"><div class="stdot ${shtU() ? 'ok' : 'ko'}"></div><b>Foglio dati:</b>&nbsp;${shtU() ? trunc(shtU()) : '<span style="color:var(--red)">non configurato</span>'}</div>`;
+    <div class="strow"><div class="stdot ok"></div><b>Password amministratore:</b>&nbsp;configurata ✔</div>
+    <div class="strow"><div class="stdot ok"></div><b>Password pubblica:</b>&nbsp;configurata ✔</div>
+    <div class="strow"><div class="stdot ${shtU() ? 'ok' : 'ko'}"></div><b>Foglio dati:</b>&nbsp;${shtU() ? trunc(shtU()) : '<span style="color:var(--red)">non configurato</span>'}</div>
+    <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px 14px;margin-top:10px;font-size:.8rem;color:#92400e;line-height:1.6">
+      ⚠️ <b>Attenzione:</b> qualsiasi modifica alle password (amministratore o pubblica) è attiva <b>immediatamente</b> dopo il salvataggio.<br>
+      Verrai reindirizzato al login e dovrai usare la <b>nuova password</b> per rientrare.
+    </div>`;
   goTo('admin');
 }
 
@@ -732,9 +742,31 @@ function doAdmSave(){
   if(!ok) return;
   // Aggiorna localStorage solo con i nuovi valori inseriti dall'admin
   if(a1) ss(K.A, a1);
-  if(p1) { ss(K.P, p1); ss(K_PUBVER, String(Date.now())); } // nuova versione → bio esistenti invalidate
+  if(p1) { ss(K.P, p1); ss(K_PUBVER, String(Date.now())); }
   if(sh) ss(K.S, sh);
   sheetData = [];
+
+  // Qualsiasi cambio di password → torna al login, nuova password attiva subito
+  if(a1 && p1){
+    alert('✔ Impostazioni salvate.\n\n⚠️ Password amministratore e pubblica cambiate.\nEntrambe sono attive da subito.\nUsa le nuove password per accedere.');
+    goTo('login');
+    setTimeout(() => el('l-psw').focus(), 80);
+    return;
+  }
+  if(a1){
+    alert('✔ Impostazioni salvate.\n\n⚠️ La password amministratore è stata cambiata.\nÈ attiva da subito — usa la nuova password per accedere al pannello admin.');
+    goTo('login');
+    setTimeout(() => el('l-psw').focus(), 80);
+    return;
+  }
+  if(p1){
+    alert('✔ Impostazioni salvate.\n\n⚠️ La password pubblica è stata cambiata.\nÈ attiva da subito — gli utenti devono usare la nuova password per accedere.');
+    goTo('login');
+    setTimeout(() => el('l-psw').focus(), 80);
+    return;
+  }
+
+  // Solo foglio aggiornato, nessuna password cambiata
   el('a-ok').classList.add('on');
   el('a-goto').style.display = 'block';
 }
