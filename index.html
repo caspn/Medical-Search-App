@@ -886,8 +886,9 @@ async function doLogin(){
     err.classList.add('on'); el('l-psw').focus(); return;
   }
   err.classList.remove('on'); el('l-psw').value = '';
-  if(!cfgOk() || !shtU()){
-    err.textContent = 'App non ancora configurata. Premere "Amministratore" per completare il setup.';
+  // App configurata se DEF.S è valorizzato nel codice OPPURE localStorage ha il setup
+  if(!shtU()){
+    err.textContent = 'Foglio dati non configurato. Contattare l\'amministratore.';
     err.classList.add('on'); return;
   }
   // Primo accesso con password su questo dispositivo: abilita la biometria
@@ -1484,7 +1485,7 @@ async function doBiometric(){
 }
 
 async function bioLoginSuccess(){
-  if(!cfgOk()||!shtU()){ el('bio-status').textContent="❌ App non configurata. Premere 'Amministratore'."; return; }
+  if(!shtU()){ el('bio-status').textContent="❌ Foglio dati non configurato. Contattare l'amministratore."; return; }
   if(!sheetData.length){ setLoad(true); await loadSheet(); setLoad(false); }
   el('bio-status').textContent='';
   goTo('input');
