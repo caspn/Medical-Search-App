@@ -343,6 +343,17 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
     </div>
 
     <div class="divider"></div>
+    <div class="sec-lbl" style="color:var(--blue)">🌐 Configurazione per GitHub Pages</div>
+    <p style="font-size:.82rem;color:var(--g500);margin-bottom:10px;line-height:1.6">
+      Per far funzionare l'app su <b>tutti i dispositivi senza setup</b>, copia il blocco qui sotto e incollalo nel file HTML (sostituendo il blocco <code style="background:var(--g100);padding:1px 5px;border-radius:4px">const DEF = {...}</code>), poi ricarica il file su GitHub.
+    </p>
+    <div style="background:#0f172a;border-radius:8px;padding:14px;margin-bottom:10px;position:relative">
+      <pre id="def-code" style="color:#7dd3fc;font-size:.75rem;font-family:monospace;overflow-x:auto;white-space:pre;margin:0"></pre>
+      <button onclick="copyDefCode()" style="position:absolute;top:8px;right:8px;background:#1e40af;color:#fff;border:none;border-radius:5px;padding:4px 10px;font-size:.72rem;cursor:pointer;font-family:'Outfit',sans-serif">📋 Copia</button>
+    </div>
+    <div id="copy-ok" style="display:none;color:var(--grn);font-size:.78rem;margin-bottom:8px">✔ Copiato negli appunti!</div>
+
+    <div class="divider"></div>
     <div class="sec-lbl" style="color:var(--blue)">📦 Trasferimento Configurazione</div>
     <p style="font-size:.82rem;color:var(--g500);margin-bottom:13px;line-height:1.6">
       <b>Esporta</b> per salvare le impostazioni in un file <code style="background:var(--g100);padding:1px 5px;border-radius:4px">.json</code> trasferibile su altri dispositivi.
@@ -568,16 +579,26 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
 // ── CHIAVI LOCALSTORAGE ────────────────────────────────────────
 const K = { A:'_adm', P:'_pub', S:'_sht', D:'_done' };
 
-// Password provvisorie solo per il primo login amministratore
-const DA = 'admin';   // accesso iniziale al pannello admin
-const DP = 'public';  // solo per completare il setup
+// ── VALORI EMBEDDED ────────────────────────────────────────────
+// Questi valori vengono letti da TUTTI i dispositivi come punto di partenza.
+// L'amministratore li imposta UNA VOLTA dal pannello Admin → Esporta,
+// poi incolla i valori qui sotto e ricarica il file su GitHub.
+// ┌─────────────────────────────────────────────────────────────┐
+const DEF = {
+  A: 'admin',   // password amministratore di default
+  P: 'public',  // password pubblica di default
+  S: '',         // ← INSERIRE QUI l'URL del foglio Google Sheets
+  D: '0'
+};
+// └─────────────────────────────────────────────────────────────┘
 
 const sg    = k => localStorage.getItem(k);
 const ss    = (k,v) => localStorage.setItem(k,v);
-const admP  = () => sg(K.A) || DA;
-const pubP  = () => sg(K.P) || DP;
-const shtU  = () => sg(K.S) || '';
-const cfgOk = () => sg(K.D) === '1';
+const admP  = () => sg(K.A) || DEF.A;
+const pubP  = () => sg(K.P) || DEF.P;
+const shtU  = () => sg(K.S) || DEF.S;
+// Configurata se: localStorage ha già il setup OPPURE DEF.S è valorizzato nel codice
+const cfgOk = () => sg(K.D) === '1' || DEF.S.trim() !== '';
 
 // Chiave versione password pubblica: incrementata ogni volta che l'admin la cambia.
 // Ogni dispositivo con bio salva la versione al momento dell'impostazione.
@@ -726,7 +747,37 @@ function openAdmPanel(){
       ⚠️ <b>Attenzione:</b> qualsiasi modifica alle password (amministratore o pubblica) è attiva <b>immediatamente</b> dopo il salvataggio.<br>
       Verrai reindirizzato al login e dovrai usare la <b>nuova password</b> per rientrare.
     </div>`;
+  // Aggiorna blocco codice DEF per GitHub
+  updateDefCode();
   goTo('admin');
+}
+
+function updateDefCode(){
+  const box = el('def-code');
+  if(!box) return;
+  const a = admP().replace(/'/g,"\\'");
+  const p = pubP().replace(/'/g,"\\'");
+  const s = shtU().replace(/'/g,"\\'");
+  box.textContent =
+`const DEF = {\n  A: '${a}',\n  P: '${p}',\n  S: '${s}',\n  D: '1'\n};`;
+}
+
+function copyDefCode(){
+  const txt = el('def-code').textContent;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const ok = el('copy-ok');
+    ok.style.display='block';
+    setTimeout(()=>ok.style.display='none', 2000);
+  }).catch(()=>{
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = txt; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    const ok = el('copy-ok');
+    ok.style.display='block';
+    setTimeout(()=>ok.style.display='none', 2000);
+  });
 }
 
 function doAdmSave(){
