@@ -784,40 +784,34 @@ function doAdmSave(){
   const sh = el('a-sh').value.trim();
   ['e-aa2','e-ap2','e-ash'].forEach(id => el(id).classList.remove('on'));
   el('a-ok').classList.remove('on');
+  el('a-warn').classList.remove('on');
   let ok = true;
   if(a1 && a1 !== a2){ el('e-aa2').classList.add('on'); ok = false; }
   if(p1 && p1 !== p2){ el('e-ap2').classList.add('on'); ok = false; }
   if(sh && !shtId(sh)){ el('e-ash').classList.add('on'); ok = false; }
   if(!ok) return;
-  // Aggiorna localStorage solo con i nuovi valori inseriti dall'admin
+
+  // Salva i nuovi valori in localStorage — attivi immediatamente
   if(a1) ss(K.A, a1);
-  if(p1) { ss(K.P, p1); ss(K_PUBVER, String(Date.now())); }
-  if(sh) ss(K.S, sh);
-  sheetData = [];
+  if(p1){ ss(K.P, p1); ss(K_PUBVER, String(Date.now())); }
+  if(sh){ ss(K.S, sh); sheetData = []; }
 
-  // Qualsiasi cambio di password → torna al login, nuova password attiva subito
-  if(a1 && p1){
-    alert('✔ Impostazioni salvate.\n\n⚠️ Password amministratore e pubblica cambiate.\nEntrambe sono attive da subito.\nUsa le nuove password per accedere.');
-    goTo('login');
-    setTimeout(() => el('l-psw').focus(), 80);
-    return;
-  }
-  if(a1){
-    alert('✔ Impostazioni salvate.\n\n⚠️ La password amministratore è stata cambiata.\nÈ attiva da subito — usa la nuova password per accedere al pannello admin.');
-    goTo('login');
-    setTimeout(() => el('l-psw').focus(), 80);
-    return;
-  }
-  if(p1){
-    alert('✔ Impostazioni salvate.\n\n⚠️ La password pubblica è stata cambiata.\nÈ attiva da subito — gli utenti devono usare la nuova password per accedere.');
-    goTo('login');
-    setTimeout(() => el('l-psw').focus(), 80);
-    return;
-  }
+  // Svuota i campi password dopo il salvataggio
+  ['a-a1','a-a2','a-p1','a-p2'].forEach(id => el(id).value = '');
 
-  // Solo foglio aggiornato, nessuna password cambiata
-  el('a-ok').classList.add('on');
+  // Mostra conferma e rimane nel pannello
+  let msg = '✔ Impostazioni salvate con successo!';
+  if(a1) msg += '<br>🔑 Password amministratore aggiornata — attiva da subito.';
+  if(p1) msg += '<br>🔑 Password pubblica aggiornata — attiva da subito.';
+  if(sh) msg += '<br>📊 Foglio dati aggiornato.';
+
+  const okBox = el('a-ok');
+  okBox.innerHTML = msg;
+  okBox.classList.add('on');
   el('a-goto').style.display = 'block';
+
+  // Aggiorna il blocco codice DEF mostrato nella sezione GitHub
+  updateDefCode();
 }
 
 function backFromAdm(){ goTo(cfgOk() ? 'input' : 'login'); }
