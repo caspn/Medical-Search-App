@@ -1211,11 +1211,8 @@ function renderRes(){
     return;
   }
 
-  // Verifica se almeno una riga nei risultati ha colonna H = "SI"
-  const showH = results.some(r => (r.H || '').trim().toUpperCase() === 'SI');
-
-  // Colonne da mostrare nei risultati (no Ubicazione)
-  const cols = [
+  // Colonne base da mostrare nei risultati (no Ubicazione)
+  const baseCols = [
     ['A','Spec. Principale'],
     ['B','Reparto'],
     ['C','Specializzazione'],
@@ -1223,18 +1220,18 @@ function renderRes(){
     ['E','Struttura'],
     ['G','Professionista']
   ];
-  if(showH) cols.push(['H','Primario']);
 
   // Ogni risultato = una dtbl identica a quella del dettaglio, cliccabile
   let h = '';
   results.forEach((r,i) => {
-    const isPrimario = showH && (r.H || '').trim().toUpperCase() === 'SI';
+    const isPrimario = (r.H || '').trim().toUpperCase() === 'SI';
     const borderColor = i === selRow ? 'var(--blue)' : isPrimario ? '#93c5fd' : 'var(--g200)';
     const bgStyle = isPrimario ? 'background:#eff6ff;' : '';
+    const cols = isPrimario ? [...baseCols, ['H','Primario']] : baseCols;
     h += '<div id="rc-'+i+'" onclick="selectAndDetail('+i+')" style="cursor:pointer;margin-bottom:14px;border-radius:var(--r);overflow:hidden;border:2px solid '+borderColor+';'+bgStyle+'">'
        + '<div class="tw"><table class="dtbl"><tbody>';
     cols.forEach(([k,lbl]) => {
-      const cellStyle = isPrimario && k === 'H' ? ' style="color:var(--blue);font-weight:700"' : '';
+      const cellStyle = k === 'H' ? ' style="color:var(--blue);font-weight:700"' : '';
       h += '<tr><td>'+lbl+'</td><td'+cellStyle+'>'+(esc(r[k])||'<span style="color:var(--g300)">—</span>')+'</td></tr>';
     });
     h += '</tbody></table></div></div>';
