@@ -194,6 +194,13 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
 .col-sp1{white-space:nowrap;text-align:center !important;font-size:.78rem !important;padding-left:8px !important;padding-right:8px !important;}
 </style>
 <script src="config.js"></script>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Elenco Medici"/>
+<meta name="theme-color" content="#0a1628"/>
 </head>
 <body>
 
@@ -1527,6 +1534,15 @@ async function bioLoginSuccess(){
   // Applica stato UI (blocchi, avvisi, triangolino)
   updateBioUI();
 })();
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(r => console.log('SW registrato:', r.scope))
+      .catch(e => console.warn('SW errore:', e));
+  });
+}
 </script>
 </body>
 </html>
