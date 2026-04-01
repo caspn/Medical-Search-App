@@ -596,10 +596,6 @@ const K = { A:'_adm', P:'_pub', S:'_sht', D:'_done' };
 // ── VALORI DI CONFIGURAZIONE ───────────────────────────────────
 // I valori sono caricati da config.js (offuscati) e deoffuscati a runtime.
 // Non sono presenti password in chiaro in questo file.
-function _defVal(k){
-  try{ return (window.__CFG && window.__CFG[k]) ? dob(window.__CFG[k]) : ''; }
-  catch(e){ return ''; }
-}
 
 const sg    = k => localStorage.getItem(k);
 const ss    = (k,v) => localStorage.setItem(k,v);
@@ -867,6 +863,10 @@ function dob(b){
     for(let i = 0; i < t.length; i++) o += String.fromCharCode(t.charCodeAt(i) ^ OBK.charCodeAt(i % OBK.length));
     return o;
   } catch{ return ''; }
+}
+function _defVal(k){
+  try{ return (window.__CFG && window.__CFG[k]) ? dob(window.__CFG[k]) : ''; }
+  catch(e){ return ''; }
 }
 
 // ── EXPORT / IMPORT / RESET ────────────────────────────────────
