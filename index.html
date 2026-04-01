@@ -1307,7 +1307,7 @@ function goDetail(){
     ['L','Membro che Segue'],
     ['M','Telefono Contatto'],
     ['N','E-mail']
-  ].map(([c,l]) => '<tr><td>'+l+'</td><td>'+(c==='N' ? escEmail(r[c]) : c==='L' ? escMembro(r[c]) : (esc(r[c])||'<span style="color:var(--g300)">—</span>'))+"</td></tr>').join('');
+  ].map(([c,l]) => '<tr><td>'+l+'</td><td>'+(c==='N' ? escEmail(r[c]) : c==='L' ? escMembro(r[c]) : (esc(r[c])||'<span style="color:var(--g300)">—</span>'))+('</td></tr>')).join('');
   goTo('detail');
 }
 
