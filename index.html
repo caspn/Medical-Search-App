@@ -654,10 +654,30 @@ function esc(t){ return (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').repla
 function escEmail(t){
   const v = (t||'').trim();
   if(!v) return '<span style="color:var(--g300)">—</span>';
-  // Controlla se è un indirizzo email valido
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
     ? '<a href="mailto:'+v+'" onclick="event.stopPropagation()" style="color:var(--blue);text-decoration:underline;word-break:break-all">'+v+'</a>'
     : v;
+}
+
+const MEMBRO_TEL = {
+  'ANTONIO AMEDURI':    '+393487556586',
+  'ALEX MARCHETTI':     '+393934913634',
+  'ANTONIO GIANNOTTI':  '+393383739847',
+  'BENIAMINO MATARRESE':'+393770456907',
+  'GIOVANNI TORNESE':   '+393935477729',
+  'LUCA MIO':           '+393491460628',
+  'ROBERTO SANSON':     '+393472292754',
+  'STEFANO SCIAN':      '+393203314703'
+};
+
+function escMembro(t){
+  const v = (t||'').trim();
+  if(!v) return '<span style="color:var(--g300)">—</span>';
+  const tel = MEMBRO_TEL[v.toUpperCase()];
+  if(!tel) return esc(v);
+  const display = tel.replace(/(\+39)(\d{3})(\d{3})(\d+)/, '$1 $2 $3 $4');
+  return '<a href="tel:'+tel+'" onclick="event.stopPropagation()" style="color:var(--blue);text-decoration:underline">'+esc(v)+'</a>'
+       + '<span style="color:var(--g400);font-size:.8rem;margin-left:8px">'+display+'</span>';
 }
 function norm(t){ return (t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
 function trunc(s,n=58){ return s.length>n ? s.slice(0,n-1)+'…' : s; }
@@ -1287,7 +1307,7 @@ function goDetail(){
     ['L','Membro che Segue'],
     ['M','Telefono Contatto'],
     ['N','E-mail']
-  ].map(([c,l]) => '<tr><td>'+l+'</td><td>'+(c==='N' ? escEmail(r[c]) : (esc(r[c])||'<span style="color:var(--g300)">—</span>'))+'</td></tr>').join('');
+  ].map(([c,l]) => '<tr><td>'+l+'</td><td>'+(c==='N' ? escEmail(r[c]) : c==='L' ? escMembro(r[c]) : (esc(r[c])||'<span style="color:var(--g300)">—</span>'))+"</td></tr>').join('');
   goTo('detail');
 }
 
