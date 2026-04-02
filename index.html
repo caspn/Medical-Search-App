@@ -443,7 +443,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
 
 
     <div class="fg">
-      <label>Specializzazione Principale</label>
+      <label>Principali Specializzazioni Mediche (HLC-9)</label>
       <div class="ddw">
         <input class="ddinp" type="text" id="i-s1" placeholder="Digita o scegli…" autocomplete="off"
           oninput="ddInp('s1')" onfocus="ddOpen('s1')" onkeydown="ddKey(event,'s1')"/>
@@ -464,7 +464,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
     </div>
 
     <div class="fg">
-      <label>Specializzazione</label>
+      <label>Specializzazione Secondaria</label>
       <div class="ddw">
         <input class="ddinp" type="text" id="i-s2" placeholder="Digita o scegli…" autocomplete="off"
           oninput="ddInp('s2')" onfocus="ddOpen('s2')" onkeydown="ddKey(event,'s2')"/>
@@ -1243,8 +1243,8 @@ function renderRes(){
 
   // Colonne base da mostrare nei risultati (no Ubicazione)
   const baseCols = [
-    ['A','Spec. Principale'],
-    ['C','Specializzazione'],
+    ['A','Principali Specializzazioni Mediche (HLC-9)'],
+    ['C','Specializzazione Secondaria'],
     ['B','Reparto'],
     ['D','Città'],
     ['E','Struttura'],
@@ -1323,8 +1323,8 @@ function goDetail(){
   el('d-name').textContent = r.G || '—';
   el('d-spec').textContent = r.C || '';
   el('d-tbody').innerHTML  = [
-    ['A','Specializzazione Principale'],
-    ['C','Specializzazione'],
+    ['A','Principali Specializzazioni Mediche (HLC-9)'],
+    ['C','Specializzazione Secondaria'],
     ['B','Reparto Ospedaliero'],
     ['D','Città'],
     ['E','Struttura'],
