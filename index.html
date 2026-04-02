@@ -1226,34 +1226,64 @@ function renderRes(){
     ['G','Professionista']
   ];
 
+  const isSI = v => (v || '').trim().toUpperCase() === 'SI';
+
+  // Ordina: righe con H=SI o I=SI prima, poi le altre
+  const sorted = [...results].sort((a, b) => {
+    const aTop = isSI(a.H) || isSI(a.I) ? 0 : 1;
+    const bTop = isSI(b.H) || isSI(b.I) ? 0 : 1;
+    return aTop - bTop;
+  });
+
   // Ogni risultato = una dtbl identica a quella del dettaglio, cliccabile
   let h = '';
-  results.forEach((r,i) => {
-    const isPrimario = (r.H || '').trim().toUpperCase() === 'SI';
-    const borderColor = i === selRow ? 'var(--blue)' : isPrimario ? '#93c5fd' : 'var(--g200)';
+  sorted.forEach((r, i) => {
+    const isPrimario    = isSI(r.H);
+    const isResponsabile = isSI(r.I);
+    const isHighlighted = isPrimario || isResponsabile;
+
+    // Bordo: blu scuro se selezionato, blu chiaro se evidenziato, grigio altrimenti
+    const borderColor = i === selRow ? 'var(--blue)' : isHighlighted ? '#93c5fd' : 'var(--g200)';
+    // Sfondo azzurro solo per Primario (H), bianco per Responsabile (I)
     const bgStyle = isPrimario ? 'background:#eff6ff;' : '';
-    const cols = isPrimario ? [...baseCols, ['H','Primario']] : baseCols;
+
+    // Colonne extra condizionali
+    const cols = [...baseCols];
+    if(isPrimario)    cols.push(['H','Primario']);
+    if(isResponsabile) cols.push(['I','Responsabile']);
+
     h += '<div id="rc-'+i+'" onclick="selectAndDetail('+i+')" style="cursor:pointer;margin-bottom:14px;border-radius:var(--r);overflow:hidden;border:2px solid '+borderColor+';'+bgStyle+'">'
        + '<div class="tw"><table class="dtbl"><tbody>';
     cols.forEach(([k,lbl]) => {
-      const cellStyle = k === 'H' ? ' style="color:var(--blue);font-weight:700"' : '';
+      const cellStyle = (k === 'H' || k === 'I') ? ' style="color:var(--blue);font-weight:700"' : '';
       const cellVal = k==='N' ? escEmail(r[k]) : (esc(r[k])||'<span style="color:var(--g300)">—</span>');
       h += '<tr><td>'+lbl+'</td><td'+cellStyle+'>'+cellVal+'</td></tr>';
     });
     h += '</tbody></table></div></div>';
   });
   el('res-body').innerHTML = h;
+
+  // Aggiorna il mapping indice visivo → indice in results originale
+  window._sortedRes = sorted;
 }
+
 
 function selectAndDetail(i){
   // Aggiorna bordo selezione su tutti i blocchi
-  results.forEach((_,j)=>{
+  const sorted = window._sortedRes || results;
+  sorted.forEach((_,j)=>{
     const rc=el('rc-'+j);
-    if(rc) rc.style.border='2px solid var(--g200)';
+    if(!rc) return;
+    const r = sorted[j];
+    const isSI = v => (v||'').trim().toUpperCase()==='SI';
+    const hi = isSI(r.H)||isSI(r.I);
+    rc.style.border='2px solid '+(hi?'#93c5fd':'var(--g200))');
   });
   const rc=el('rc-'+i);
   if(rc) rc.style.border='2px solid var(--blue)';
   selRow=i;
+  // goDetail usa results[selRow] — puntiamo alla riga corretta nel sorted
+  window._selSorted = i;
   el('btn-det').disabled=false;
   goDetail();
 }
@@ -1262,7 +1292,8 @@ function pickRow(i){ selectAndDetail(i); }
 // ── DETAIL ─────────────────────────────────────────────────────
 function goDetail(){
   if(selRow === null) return;
-  const r = results[selRow];
+  const sorted = window._sortedRes || results;
+  const r = sorted[window._selSorted !== undefined ? window._selSorted : selRow];
   el('d-lbl').textContent  = (lastS1 || 'Specializzazione').toUpperCase();
   el('d-name').textContent = r.G || '—';
   el('d-spec').textContent = r.C || '';
