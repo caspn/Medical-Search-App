@@ -1012,7 +1012,6 @@ async function forceReload(){
 
 // ── DROPDOWN ENGINE ────────────────────────────────────────────
 const DDS = {
-  s1:{ col:'A', inp:'i-s1', pan:'dp-s1', itm:'di-s1', src:'ds-s1', arr:'dv-s1', clr:'dc-s1' },
   rp:{ col:'B', inp:'i-rp', pan:'dp-rp', itm:'di-rp', src:'ds-rp', arr:'dv-rp', clr:'dc-rp' },
   s2:{ col:'C', inp:'i-s2', pan:'dp-s2', itm:'di-s2', src:'ds-s2', arr:'dv-s2', clr:'dc-s2' },
   ct:{ col:'D', inp:'i-ct', pan:'dp-ct', itm:'di-ct', src:'ds-ct', arr:'dv-ct', clr:'dc-ct' },
@@ -1024,10 +1023,6 @@ let ddCur = null;
 
 // Ritorna le righe base: se col != A e SPEC1 è valorizzato, filtra per SPEC1
 function baseRows(col){
-  const s1val = el('i-s1').value.trim();
-  if(col !== 'A' && s1val){
-    return sheetData.filter(r => norm(r.A).includes(norm(s1val)));
-  }
   return sheetData;
 }
 
@@ -1117,22 +1112,7 @@ function ddPick(key, val){
   el('er-'+key).classList.remove('on');
   el(c.inp).classList.remove('err-i');
   ddClose(key);
-  // Quando si sceglie SPEC1, svuota i dipendenti non più compatibili
-  if(key === 's1'){
-    ['rp','s2','ct'].forEach(k => {
-      const ck = DDS[k], cur = el(ck.inp).value.trim();
-      if(!cur) return;
-      const compatibili = sheetData
-        .filter(r => norm(r.A).includes(norm(val)))
-        .map(r => r[ck.col]);
-      if(!compatibili.some(v => norm(v) === norm(cur))){
-        el(ck.inp).value = '';
-        el(ck.clr).classList.remove('on');
-        el('er-'+k).classList.remove('on');
-        el(ck.inp).classList.remove('err-i');
-      }
-    });
-  }
+
 }
 
 function ddClr(key){
@@ -1141,16 +1121,7 @@ function ddClr(key){
   el(c.clr).classList.remove('on');
   el('er-'+key).classList.remove('on');
   el(c.inp).classList.remove('err-i');
-  // Svuotare SPEC1 → svuota anche i 3 dipendenti
-  if(key === 's1'){
-    ['rp','s2','ct'].forEach(k => {
-      const ck = DDS[k];
-      el(ck.inp).value = '';
-      el(ck.clr).classList.remove('on');
-      el('er-'+k).classList.remove('on');
-      el(ck.inp).classList.remove('err-i');
-    });
-  }
+
   el(c.inp).focus();
   ddOpen(key);
 }
@@ -1186,7 +1157,7 @@ function resetSearch(){
 }
 function doSearch(){
   // Step 1: svuota campi che erano già in errore dalla ricerca precedente
-  [['er-s1','i-s1','dc-s1'],['er-rp','i-rp','dc-rp'],['er-s2','i-s2','dc-s2'],['er-ct','i-ct','dc-ct'],['er-mb','i-mb','dc-mb']]
+  [['er-rp','i-rp','dc-rp'],['er-s2','i-s2','dc-s2'],['er-ct','i-ct','dc-ct'],['er-mb','i-mb','dc-mb']]
     .forEach(([eid,iid,cid]) => {
       if(el(eid).classList.contains('on')){
         el(iid).value = '';
@@ -1197,18 +1168,17 @@ function doSearch(){
     });
 
   // Step 2: leggi valori aggiornati
-  const s1 = el('i-s1').value.trim();
   const rp = el('i-rp').value.trim();
   const s2 = el('i-s2').value.trim();
   const ct = el('i-ct').value.trim();
   const mb = el('i-mb').value.trim();
 
   // Pulisci stati errore
-  ['er-s1','er-rp','er-s2','er-ct','er-mb'].forEach(id => el(id).classList.remove('on'));
-  ['i-s1','i-rp','i-s2','i-ct','i-mb'].forEach(id => el(id).classList.remove('err-i'));
+  ['er-rp','er-s2','er-ct','er-mb'].forEach(id => el(id).classList.remove('on'));
+  ['i-rp','i-s2','i-ct','i-mb'].forEach(id => el(id).classList.remove('err-i'));
   el('er-empty').classList.remove('on');
 
-  if(!s1 && !rp && !s2 && !ct && !mb){ el('er-empty').classList.add('on'); return; }
+  if(!rp && !s2 && !ct && !mb){ el('er-empty').classList.add('on'); return; }
 
   // Step 3: filtra — se un campo non ha match lo segnala ma NON blocca la ricerca
   let f = sheetData;
@@ -1223,7 +1193,6 @@ function doSearch(){
       f = r;
     }
   }
-  flt('A','i-s1','er-s1',s1);
   flt('B','i-rp','er-rp',rp);
   flt('C','i-s2','er-s2',s2);
   flt('D','i-ct','er-ct',ct);

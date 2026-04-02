@@ -1,5 +1,5 @@
 // Service Worker — Elenco Medici PWA
-const CACHE = 'elenco-medici-v1';
+const CACHE = 'elenco-medici-v2';
 const ASSETS = [
   './index.html',
   './config.js',
