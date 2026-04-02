@@ -438,29 +438,10 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
   <div class="card">
     <div class="ptitle">Ricerca Professionista</div>
     <div class="psub">Digita oppure scegli dal menù a tendina — uno o più campi</div>
-    <div class="fg">
-      <label>Specializzazione Principale <span style="color:var(--ac)">[SPEC1]</span></label>
-      <div class="ddw">
-        <input class="ddinp" type="text" id="i-s1" placeholder="Digita o scegli…" autocomplete="off"
-          oninput="ddInp('s1')" onfocus="ddOpen('s1')" onkeydown="ddKey(event,'s1')"/>
-        <div class="ddbtns">
-          <button class="ddib ddclr" id="dc-s1" onclick="ddClr('s1')" tabindex="-1">
-            <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-          <button class="ddib ddchv" id="dv-s1" onclick="ddTog('s1')" tabindex="-1">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-        </div>
-        <div class="ddpanel" id="dp-s1">
-          <div class="ddsr"><input type="text" id="ds-s1" placeholder="Cerca nella lista…" oninput="ddSrch('s1')" onkeydown="ddKey(event,'s1')"/></div>
-          <div class="ddscr" id="di-s1"></div>
-        </div>
-      </div>
-      <div class="em" id="er-s1">Nessuna corrispondenza trovata</div>
     </div>
 
     <div class="fg">
-      <label>Reparto Ospedaliero <span style="color:var(--ac)">[REP]</span></label>
+      <label>Reparto Ospedaliero</label>
       <div class="ddw">
         <input class="ddinp" type="text" id="i-rp" placeholder="Digita o scegli…" autocomplete="off"
           oninput="ddInp('rp')" onfocus="ddOpen('rp')" onkeydown="ddKey(event,'rp')"/>
@@ -481,7 +462,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
     </div>
 
     <div class="fg">
-      <label>Specializzazione <span style="color:var(--ac)">[SPEC2]</span></label>
+      <label>Specializzazione</label>
       <div class="ddw">
         <input class="ddinp" type="text" id="i-s2" placeholder="Digita o scegli…" autocomplete="off"
           oninput="ddInp('s2')" onfocus="ddOpen('s2')" onkeydown="ddKey(event,'s2')"/>
@@ -502,7 +483,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
     </div>
 
     <div class="fg">
-      <label>Città <span style="color:var(--ac)">[CITTÀ]</span></label>
+      <label>Città</label>
       <div class="ddw">
         <input class="ddinp" type="text" id="i-ct" placeholder="Digita o scegli…" autocomplete="off"
           oninput="ddInp('ct')" onfocus="ddOpen('ct')" onkeydown="ddKey(event,'ct')"/>
@@ -520,6 +501,27 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
         </div>
       </div>
       <div class="em" id="er-ct">Nessuna corrispondenza trovata</div>
+    </div>
+
+    <div class="fg">
+      <label>Membro che Segue</label>
+      <div class="ddw">
+        <input class="ddinp" type="text" id="i-mb" placeholder="Digita o scegli…" autocomplete="off"
+          oninput="ddInp('mb')" onfocus="ddOpen('mb')" onkeydown="ddKey(event,'mb')"/>
+        <div class="ddbtns">
+          <button class="ddib ddclr" id="dc-mb" onclick="ddClr('mb')" tabindex="-1">
+            <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <button class="ddib ddchv" id="dv-mb" onclick="ddTog('mb')" tabindex="-1">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </div>
+        <div class="ddpanel" id="dp-mb">
+          <div class="ddsr"><input type="text" id="ds-mb" placeholder="Cerca nella lista…" oninput="ddSrch('mb')" onkeydown="ddKey(event,'mb')"/></div>
+          <div class="ddscr" id="di-mb"></div>
+        </div>
+      </div>
+      <div class="em" id="er-mb">Nessuna corrispondenza trovata</div>
     </div>
 
     <div class="wbox" id="er-empty">Inserire almeno un criterio di ricerca</div>
@@ -1013,7 +1015,8 @@ const DDS = {
   s1:{ col:'A', inp:'i-s1', pan:'dp-s1', itm:'di-s1', src:'ds-s1', arr:'dv-s1', clr:'dc-s1' },
   rp:{ col:'B', inp:'i-rp', pan:'dp-rp', itm:'di-rp', src:'ds-rp', arr:'dv-rp', clr:'dc-rp' },
   s2:{ col:'C', inp:'i-s2', pan:'dp-s2', itm:'di-s2', src:'ds-s2', arr:'dv-s2', clr:'dc-s2' },
-  ct:{ col:'D', inp:'i-ct', pan:'dp-ct', itm:'di-ct', src:'ds-ct', arr:'dv-ct', clr:'dc-ct' }
+  ct:{ col:'D', inp:'i-ct', pan:'dp-ct', itm:'di-ct', src:'ds-ct', arr:'dv-ct', clr:'dc-ct' },
+  mb:{ col:'L', inp:'i-mb', pan:'dp-mb', itm:'di-mb', src:'ds-mb', arr:'dv-mb', clr:'dc-mb' }
 };
 let ddCur = null;
 
@@ -1183,7 +1186,7 @@ function resetSearch(){
 }
 function doSearch(){
   // Step 1: svuota campi che erano già in errore dalla ricerca precedente
-  [['er-s1','i-s1','dc-s1'],['er-rp','i-rp','dc-rp'],['er-s2','i-s2','dc-s2'],['er-ct','i-ct','dc-ct']]
+  [['er-s1','i-s1','dc-s1'],['er-rp','i-rp','dc-rp'],['er-s2','i-s2','dc-s2'],['er-ct','i-ct','dc-ct'],['er-mb','i-mb','dc-mb']]
     .forEach(([eid,iid,cid]) => {
       if(el(eid).classList.contains('on')){
         el(iid).value = '';
@@ -1198,13 +1201,14 @@ function doSearch(){
   const rp = el('i-rp').value.trim();
   const s2 = el('i-s2').value.trim();
   const ct = el('i-ct').value.trim();
+  const mb = el('i-mb').value.trim();
 
   // Pulisci stati errore
-  ['er-s1','er-rp','er-s2','er-ct'].forEach(id => el(id).classList.remove('on'));
-  ['i-s1','i-rp','i-s2','i-ct'].forEach(id => el(id).classList.remove('err-i'));
+  ['er-s1','er-rp','er-s2','er-ct','er-mb'].forEach(id => el(id).classList.remove('on'));
+  ['i-s1','i-rp','i-s2','i-ct','i-mb'].forEach(id => el(id).classList.remove('err-i'));
   el('er-empty').classList.remove('on');
 
-  if(!s1 && !rp && !s2 && !ct){ el('er-empty').classList.add('on'); return; }
+  if(!s1 && !rp && !s2 && !ct && !mb){ el('er-empty').classList.add('on'); return; }
 
   // Step 3: filtra — se un campo non ha match lo segnala ma NON blocca la ricerca
   let f = sheetData;
@@ -1223,6 +1227,7 @@ function doSearch(){
   flt('B','i-rp','er-rp',rp);
   flt('C','i-s2','er-s2',s2);
   flt('D','i-ct','er-ct',ct);
+  flt('L','i-mb','er-mb',mb);
 
   // Step 4: mostra sempre i risultati, anche se alcuni campi hanno errore
   results = f;
