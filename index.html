@@ -107,6 +107,7 @@ body{font-family:'Outfit',sans-serif;background:var(--g50);color:var(--navy);min
 .ddclr{display:none}.ddclr.on{display:flex}
 .ddchv svg{transition:transform .2s}.ddchv.open svg{transform:rotate(180deg);color:var(--ac)}
 .ddpanel{display:none;position:absolute;top:calc(100% + 5px);left:0;right:0;background:#fff;border:2px solid var(--ac);border-radius:var(--rs);box-shadow:var(--shlg);z-index:250;overflow:hidden}
+.ddpanel.dropup{top:auto;bottom:calc(100% + 5px)}
 .ddpanel.on{display:flex;flex-direction:column;animation:ddin .13s ease}
 @keyframes ddin{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
 .ddsr{padding:8px 10px;border-bottom:1px solid var(--g100);flex-shrink:0;background:var(--g50)}
@@ -1092,7 +1093,13 @@ async function ddOpen(key){
     el('er-'+key).classList.remove('on');
     el(c.inp).classList.remove('err-i');
   }
-  el(c.pan).classList.add('on');
+  // Dropup: se il campo è vicino al fondo dello schermo apri verso l'alto
+  const panel = el(c.pan);
+  const rect  = el(c.inp).getBoundingClientRect();
+  const spaceBelow = window.innerHeight - rect.bottom;
+  if(spaceBelow < 280) panel.classList.add('dropup');
+  else panel.classList.remove('dropup');
+  panel.classList.add('on');
   el(c.arr).classList.add('open');
   const q = el(c.inp).value.trim();
   el(c.src).value = q;
@@ -1106,6 +1113,7 @@ async function ddOpen(key){
 function ddClose(key){
   if(!key) return;
   el(DDS[key].pan).classList.remove('on');
+  el(DDS[key].pan).classList.remove('dropup');
   el(DDS[key].arr).classList.remove('open');
   if(ddCur === key) ddCur = null;
 }
