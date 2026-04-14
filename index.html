@@ -416,7 +416,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
         </button>
       </div>
       <div id="bio-wrap" style="margin-top:14px;border-top:1px solid var(--g100);padding-top:14px">
-        <button class="btn" id="btn-bio" onclick="doBiometric()"
+        <button class="btn" id="btn-bio" onclick="doBiometric()" disabled
           style="width:100%;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;justify-content:center;gap:10px">
           <span id="bio-icon">👆</span>
           <span id="bio-label">Accedi con Biometria / PIN</span>
@@ -1347,6 +1347,7 @@ function updateBioUI(){
     if(warn)     warn.style.display     = 'none';
     if(msgWarn)  msgWarn.style.display  = 'none';
     if(msgFirst) msgFirst.style.display = '';
+    if(btnBio)   btnBio.disabled        = true;
     if(btnBio)   btnBio.style.opacity   = '0.45';
     if(btnBio)   btnBio.style.pointerEvents = 'none';
     return;
@@ -1357,12 +1358,16 @@ function updateBioUI(){
     if(warn)     warn.style.display     = '';
     if(msgWarn)  msgWarn.style.display  = '';
     if(msgFirst) msgFirst.style.display = 'none';
+    if(btnBio)   btnBio.disabled        = true;
     if(btnBio)   btnBio.style.opacity   = '0.5';
     if(btnBio)   btnBio.style.pointerEvents = 'none';
     return;
   }
 
   // Stato normale
+  if(btnBio)   btnBio.disabled        = false;
+  if(btnBio)   btnBio.style.opacity   = '1';
+  if(btnBio)   btnBio.style.pointerEvents = '';
   if(warn)     warn.style.display     = 'none';
   if(msgWarn)  msgWarn.style.display  = 'none';
   if(msgFirst) msgFirst.style.display = 'none';
