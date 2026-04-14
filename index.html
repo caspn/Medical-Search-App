@@ -198,6 +198,14 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
 /* Colonna Spec. Principale: 20ch, centrata, mai a capo */
 .col-sp1{white-space:nowrap;text-align:center !important;font-size:.78rem !important;padding-left:8px !important;padding-right:8px !important;}
 </style>
+<script src="config.js"></script>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Elenco Medici"/>
+<meta name="theme-color" content="#0a1628"/>
 </head>
 <body>
 
@@ -354,7 +362,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
     <div class="divider"></div>
     <div class="sec-lbl" style="color:var(--blue)">🌐 Configurazione per GitHub Pages</div>
     <p style="font-size:.82rem;color:var(--g500);margin-bottom:10px;line-height:1.6">
-      Per far funzionare l'app su <b>tutti i dispositivi senza setup</b>, copia il blocco qui sotto e incollalo nel file HTML (sostituendo il blocco <code style="background:var(--g100);padding:1px 5px;border-radius:4px">const DEF = {...}</code>), poi ricarica il file su GitHub.
+      Per far funzionare l'app su <b>tutti i dispositivi senza setup</b>, copia il blocco qui sotto e incollalo nel file <code style="background:var(--g100);padding:1px 5px;border-radius:4px">config.js</code> (sostituendo il contenuto esistente), poi carica <b>entrambi i file</b> su GitHub.
     </p>
     <div style="background:#0f172a;border-radius:8px;padding:14px;margin-bottom:10px;position:relative">
       <pre id="def-code" style="color:#7dd3fc;font-size:.75rem;font-family:monospace;overflow-x:auto;white-space:pre;margin:0"></pre>
@@ -436,9 +444,13 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
 
 <!-- PAGE: RICERCA -->
 <div class="page" id="page-input">
+  <div class="phdr" style="margin-bottom:20px">
+    <div class="phname">Ricerca Professionista</div>
+    <div class="phspec">Digita oppure scegli dal menù a tendina — uno o più campi</div>
+  </div>
   <div class="card">
-    <div class="ptitle">Ricerca Professionista</div>
-    <div class="psub">Digita oppure scegli dal menù a tendina — uno o più campi</div>
+
+
     <div class="fg">
       <label>Principali Specializzazioni Mediche (HLC-9)</label>
       <div class="ddw">
@@ -479,6 +491,26 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
         </div>
       </div>
       <div class="em" id="er-s2">Nessuna corrispondenza trovata</div>
+    </div>
+    <div class="fg">
+      <label>Reparto Ospedaliero</label>
+      <div class="ddw">
+        <input class="ddinp" type="text" id="i-rp" placeholder="Digita o scegli…" autocomplete="off"
+          oninput="ddInp('rp')" onfocus="ddOpen('rp')" onkeydown="ddKey(event,'rp')"/>
+        <div class="ddbtns">
+          <button class="ddib ddclr" id="dc-rp" onclick="ddClr('rp')" tabindex="-1">
+            <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <button class="ddib ddchv" id="dv-rp" onclick="ddTog('rp')" tabindex="-1">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </div>
+        <div class="ddpanel" id="dp-rp">
+          <div class="ddsr"><input type="text" id="ds-rp" placeholder="Cerca nella lista…" oninput="ddSrch('rp')" onkeydown="ddKey(event,'rp')"/></div>
+          <div class="ddscr" id="di-rp"></div>
+        </div>
+      </div>
+      <div class="em" id="er-rp">Nessuna corrispondenza trovata</div>
     </div>
 
     <div class="fg">
@@ -543,6 +575,12 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
   <div class="card">
     <div class="ptitle">Risultati della Ricerca</div>
     <div class="psub" id="res-sub"></div>
+    <div class="brow" style="margin-bottom:16px;margin-top:0">
+      <button class="btn bg" onclick="goTo('input')">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        Nuova Ricerca
+      </button>
+    </div>
     <div id="res-body"></div>
     <div class="divider"></div>
     <div class="brow">
@@ -588,26 +626,17 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
 // ── CHIAVI LOCALSTORAGE ────────────────────────────────────────
 const K = { A:'_adm', P:'_pub', S:'_sht', D:'_done' };
 
-// ── VALORI EMBEDDED ────────────────────────────────────────────
-// Questi valori vengono letti da TUTTI i dispositivi come punto di partenza.
-// L'amministratore li imposta UNA VOLTA dal pannello Admin → Esporta,
-// poi incolla i valori qui sotto e ricarica il file su GitHub.
-// ┌─────────────────────────────────────────────────────────────┐
-const DEF = {
-  A: 'AdmincasPN17886',
-  P: 'ComSanPN123',
-  S: 'https://docs.google.com/spreadsheets/d/1nbPeGUsGFZxqNAfUUihnNNYv19SJ5xJ8fHc6W7dipag/edit?gid=1167140769#gid=1167140769',
-  D: '1'
-};
-// └─────────────────────────────────────────────────────────────┘
+// ── VALORI DI CONFIGURAZIONE ───────────────────────────────────
+// I valori sono caricati da config.js (offuscati) e deoffuscati a runtime.
+// Non sono presenti password in chiaro in questo file.
 
 const sg    = k => localStorage.getItem(k);
 const ss    = (k,v) => localStorage.setItem(k,v);
-const admP  = () => sg(K.A) || DEF.A;
-const pubP  = () => sg(K.P) || DEF.P;
-const shtU  = () => sg(K.S) || DEF.S;
-// Configurata se: localStorage ha già il setup OPPURE DEF.S è valorizzato nel codice
-const cfgOk = () => sg(K.D) === '1' || DEF.S.trim() !== '';
+const admP  = () => sg(K.A) || _defVal('A');
+const pubP  = () => sg(K.P) || _defVal('P');
+const shtU  = () => sg(K.S) || _defVal('S');
+// Configurata se: localStorage ha già il setup OPPURE config.js ha S valorizzato
+const cfgOk = () => sg(K.D) === '1' || _defVal('S').trim() !== '';
 
 // Chiave versione password pubblica: incrementata ogni volta che l'admin la cambia.
 // Ogni dispositivo con bio salva la versione al momento dell'impostazione.
@@ -651,6 +680,34 @@ function gvizUrl(){
 }
 
 function esc(t){ return (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escEmail(t){
+  const v = (t||'').trim();
+  if(!v) return '<span style="color:var(--g300)">—</span>';
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+    ? '<a href="mailto:'+v+'" onclick="event.stopPropagation()" style="color:var(--blue);text-decoration:underline;word-break:break-all">'+v+'</a>'
+    : v;
+}
+
+const MEMBRO_TEL = {
+  'ANTONIO AMEDURI':    '+393487556586',
+  'ALEX MARCHETTI':     '+393934913634',
+  'ANTONIO GIANNOTTI':  '+393383739847',
+  'BENIAMINO MATARRESE':'+393770456907',
+  'GIOVANNI TORNESE':   '+393935477729',
+  'LUCA MIO':           '+393491460628',
+  'ROBERTO SANSON':     '+393472292754',
+  'STEFANO SCIAN':      '+393203314703'
+};
+
+function escMembro(t){
+  const v = (t||'').trim();
+  if(!v) return '<span style="color:var(--g300)">—</span>';
+  const tel = MEMBRO_TEL[v.toUpperCase()];
+  if(!tel) return esc(v);
+  const display = tel.replace(/(\+39)(\d{3})(\d{3})(\d+)/, '$1 $2 $3 $4');
+  return '<a href="tel:'+tel+'" onclick="event.stopPropagation()" style="color:var(--blue);text-decoration:underline">'+esc(v)+'</a>'
+       + '<span style="color:var(--g400);font-size:.8rem;margin-left:8px">'+display+'</span>';
+}
 function norm(t){ return (t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
 function trunc(s,n=58){ return s.length>n ? s.slice(0,n-1)+'…' : s; }
 
@@ -762,11 +819,11 @@ function openAdmPanel(){
 function updateDefCode(){
   const box = el('def-code');
   if(!box) return;
-  const a = admP().replace(/'/g,"\\'");
-  const p = pubP().replace(/'/g,"\\'");
-  const s = shtU().replace(/'/g,"\\'");
+  const a = obf(admP());
+  const p = obf(pubP());
+  const s = obf(shtU());
   box.textContent =
-`const DEF = {\n  A: '${a}',\n  P: '${p}',\n  S: '${s}',\n  D: '1'\n};`;
+`window.__CFG = {\n  A: '${a}',\n  P: '${p}',\n  S: '${s}',\n  D: 'fA=='\n};`;
 }
 
 function copyDefCode(){
@@ -839,6 +896,10 @@ function dob(b){
     for(let i = 0; i < t.length; i++) o += String.fromCharCode(t.charCodeAt(i) ^ OBK.charCodeAt(i % OBK.length));
     return o;
   } catch{ return ''; }
+}
+function _defVal(k){
+  try{ return (window.__CFG && window.__CFG[k]) ? dob(window.__CFG[k]) : ''; }
+  catch(e){ return ''; }
 }
 
 // ── EXPORT / IMPORT / RESET ────────────────────────────────────
@@ -983,6 +1044,7 @@ async function forceReload(){
 // ── DROPDOWN ENGINE ────────────────────────────────────────────
 const DDS = {
   s1:{ col:'A', inp:'i-s1', pan:'dp-s1', itm:'di-s1', src:'ds-s1', arr:'dv-s1', clr:'dc-s1' },
+  rp:{ col:'B', inp:'i-rp', pan:'dp-rp', itm:'di-rp', src:'ds-rp', arr:'dv-rp', clr:'dc-rp' },
   s2:{ col:'C', inp:'i-s2', pan:'dp-s2', itm:'di-s2', src:'ds-s2', arr:'dv-s2', clr:'dc-s2' },
   ct:{ col:'D', inp:'i-ct', pan:'dp-ct', itm:'di-ct', src:'ds-ct', arr:'dv-ct', clr:'dc-ct' },
   mb:{ col:'L', inp:'i-mb', pan:'dp-mb', itm:'di-mb', src:'ds-mb', arr:'dv-mb', clr:'dc-mb' }
@@ -1039,10 +1101,11 @@ async function ddOpen(key){
     el('er-'+key).classList.remove('on');
     el(c.inp).classList.remove('err-i');
   }
-  // Dropup: apri verso l'alto se c'è poco spazio sotto
+  // Dropup: se il campo è vicino al fondo dello schermo apri verso l'alto
   const panel = el(c.pan);
   const rect  = el(c.inp).getBoundingClientRect();
-  if(window.innerHeight - rect.bottom < 280) panel.classList.add('dropup');
+  const spaceBelow = window.innerHeight - rect.bottom;
+  if(spaceBelow < 280) panel.classList.add('dropup');
   else panel.classList.remove('dropup');
   panel.classList.add('on');
   el(c.arr).classList.add('open');
@@ -1133,7 +1196,7 @@ function resetSearch(){
 }
 function doSearch(){
   // Step 1: svuota campi che erano già in errore dalla ricerca precedente
-  [['er-s1','i-s1','dc-s1'],['er-s2','i-s2','dc-s2'],['er-ct','i-ct','dc-ct'],['er-mb','i-mb','dc-mb']]
+  [['er-s1','i-s1','dc-s1'],['er-rp','i-rp','dc-rp'],['er-s2','i-s2','dc-s2'],['er-ct','i-ct','dc-ct'],['er-mb','i-mb','dc-mb']]
     .forEach(([eid,iid,cid]) => {
       if(el(eid).classList.contains('on')){
         el(iid).value = '';
@@ -1145,16 +1208,17 @@ function doSearch(){
 
   // Step 2: leggi valori aggiornati
   const s1 = el('i-s1').value.trim();
+  const rp = el('i-rp').value.trim();
   const s2 = el('i-s2').value.trim();
   const ct = el('i-ct').value.trim();
   const mb = el('i-mb').value.trim();
 
   // Pulisci stati errore
-  ['er-s1','er-s2','er-ct','er-mb'].forEach(id => el(id).classList.remove('on'));
-  ['i-s1','i-s2','i-ct','i-mb'].forEach(id => el(id).classList.remove('err-i'));
+  ['er-s1','er-rp','er-s2','er-ct','er-mb'].forEach(id => el(id).classList.remove('on'));
+  ['i-s1','i-rp','i-s2','i-ct','i-mb'].forEach(id => el(id).classList.remove('err-i'));
   el('er-empty').classList.remove('on');
 
-  if(!s1 && !s2 && !ct && !mb){ el('er-empty').classList.add('on'); return; }
+  if(!s1 && !rp && !s2 && !ct && !mb){ el('er-empty').classList.add('on'); return; }
 
   // Step 3: filtra — se un campo non ha match lo segnala ma NON blocca la ricerca
   let f = sheetData;
@@ -1170,6 +1234,7 @@ function doSearch(){
     }
   }
   flt('A','i-s1','er-s1',s1);
+  flt('B','i-rp','er-rp',rp);
   flt('C','i-s2','er-s2',s2);
   flt('D','i-ct','er-ct',ct);
   flt('L','i-mb','er-mb',mb);
@@ -1192,8 +1257,8 @@ function renderRes(){
     return;
   }
 
-  // Colonne da mostrare nei risultati (no Ubicazione)
-  const cols = [
+  // Colonne base da mostrare nei risultati (no Ubicazione)
+  const baseCols = [
     ['A','Principali Specializzazioni Mediche (HLC-9)'],
     ['C','Specializzazione Secondaria'],
     ['B','Reparto'],
@@ -1202,28 +1267,64 @@ function renderRes(){
     ['G','Professionista']
   ];
 
+  const isSI = v => (v || '').trim().toUpperCase() === 'SI';
+
+  // Ordina: righe con H=SI o I=SI prima, poi le altre
+  const sorted = [...results].sort((a, b) => {
+    const aTop = isSI(a.H) || isSI(a.I) ? 0 : 1;
+    const bTop = isSI(b.H) || isSI(b.I) ? 0 : 1;
+    return aTop - bTop;
+  });
+
   // Ogni risultato = una dtbl identica a quella del dettaglio, cliccabile
   let h = '';
-  results.forEach((r,i) => {
-    h += '<div id="rc-'+i+'" onclick="selectAndDetail('+i+')" style="cursor:pointer;margin-bottom:14px;border-radius:var(--r);overflow:hidden;border:2px solid '+(i===selRow?'var(--blue)':'var(--g200)')+';">'
+  sorted.forEach((r, i) => {
+    const isPrimario    = isSI(r.H);
+    const isResponsabile = isSI(r.I);
+    const isHighlighted = isPrimario || isResponsabile;
+
+    // Bordo: blu scuro se selezionato, blu chiaro se evidenziato, grigio altrimenti
+    const borderColor = i === selRow ? 'var(--blue)' : isHighlighted ? '#93c5fd' : 'var(--g200)';
+    // Sfondo azzurro solo per Primario (H), bianco per Responsabile (I)
+    const bgStyle = isPrimario ? 'background:#eff6ff;' : '';
+
+    // Colonne extra condizionali
+    const cols = [...baseCols];
+    if(isPrimario)    cols.push(['H','Primario']);
+    if(isResponsabile) cols.push(['I','Responsabile']);
+
+    h += '<div id="rc-'+i+'" onclick="selectAndDetail('+i+')" style="cursor:pointer;margin-bottom:14px;border-radius:var(--r);overflow:hidden;border:2px solid '+borderColor+';'+bgStyle+'">'
        + '<div class="tw"><table class="dtbl"><tbody>';
     cols.forEach(([k,lbl]) => {
-      h += '<tr><td>'+lbl+'</td><td>'+(esc(r[k])||'<span style="color:var(--g300)">—</span>')+'</td></tr>';
+      const cellStyle = (k === 'H' || k === 'I') ? ' style="color:var(--blue);font-weight:700"' : '';
+      const cellVal = k==='N' ? escEmail(r[k]) : (esc(r[k])||'<span style="color:var(--g300)">—</span>');
+      h += '<tr><td>'+lbl+'</td><td'+cellStyle+'>'+cellVal+'</td></tr>';
     });
     h += '</tbody></table></div></div>';
   });
   el('res-body').innerHTML = h;
+
+  // Aggiorna il mapping indice visivo → indice in results originale
+  window._sortedRes = sorted;
 }
+
 
 function selectAndDetail(i){
   // Aggiorna bordo selezione su tutti i blocchi
-  results.forEach((_,j)=>{
+  const sorted = window._sortedRes || results;
+  sorted.forEach((_,j)=>{
     const rc=el('rc-'+j);
-    if(rc) rc.style.border='2px solid var(--g200)';
+    if(!rc) return;
+    const r = sorted[j];
+    const isSI = v => (v||'').trim().toUpperCase()==='SI';
+    const hi = isSI(r.H)||isSI(r.I);
+    rc.style.border='2px solid '+(hi?'#93c5fd':'var(--g200))');
   });
   const rc=el('rc-'+i);
   if(rc) rc.style.border='2px solid var(--blue)';
   selRow=i;
+  // goDetail usa results[selRow] — puntiamo alla riga corretta nel sorted
+  window._selSorted = i;
   el('btn-det').disabled=false;
   goDetail();
 }
@@ -1232,7 +1333,8 @@ function pickRow(i){ selectAndDetail(i); }
 // ── DETAIL ─────────────────────────────────────────────────────
 function goDetail(){
   if(selRow === null) return;
-  const r = results[selRow];
+  const sorted = window._sortedRes || results;
+  const r = sorted[window._selSorted !== undefined ? window._selSorted : selRow];
   el('d-lbl').textContent  = (lastS1 || 'Specializzazione').toUpperCase();
   el('d-name').textContent = r.G || '—';
   el('d-spec').textContent = r.C || '';
@@ -1251,7 +1353,7 @@ function goDetail(){
     ['L','Membro che Segue'],
     ['M','Telefono Contatto'],
     ['N','E-mail']
-  ].map(([c,l]) => '<tr><td>'+l+'</td><td>'+(esc(r[c])||'<span style="color:var(--g300)">—</span>')+'</td></tr>').join('');
+  ].map(([c,l]) => '<tr><td>'+l+'</td><td>'+(c==='N' ? escEmail(r[c]) : c==='L' ? escMembro(r[c]) : (esc(r[c])||'<span style="color:var(--g300)">—</span>'))+('</td></tr>')).join('');
   goTo('detail');
 }
 
@@ -1503,6 +1605,15 @@ async function bioLoginSuccess(){
   // Applica stato UI (blocchi, avvisi, triangolino)
   updateBioUI();
 })();
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(r => console.log('SW registrato:', r.scope))
+      .catch(e => console.warn('SW errore:', e));
+  });
+}
 </script>
 </body>
 </html>
