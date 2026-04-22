@@ -1337,61 +1337,83 @@ function renderResData(data){
 
   const isSI = v => (v || '').trim().toUpperCase() === 'SI';
 
+  // Deduplicazione per nome professionista (col G):
+  // Raggruppa tutte le righe con lo stesso nome, tieni come "principale"
+  // quella con H=SI, poi I=SI, poi la prima. Conserva tutte le righe per il dettaglio.
+  const grouped = new Map();
+  data.forEach(r => {
+    const key = (r.G || '').trim().toUpperCase();
+    if(!key) return;
+    if(!grouped.has(key)){
+      grouped.set(key, { main: r, all: [r] });
+    } else {
+      const g = grouped.get(key);
+      g.all.push(r);
+      // Aggiorna la riga principale se questa ha priorità maggiore
+      if(isSI(r.H) && !isSI(g.main.H)) g.main = r;
+      else if(isSI(r.I) && !isSI(g.main.H) && !isSI(g.main.I)) g.main = r;
+    }
+  });
+
   // Ordina: righe con H=SI o I=SI prima, poi le altre
-  const sorted = [...data].sort((a, b) => {
-    const aTop = isSI(a.H) || isSI(a.I) ? 0 : 1;
-    const bTop = isSI(b.H) || isSI(b.I) ? 0 : 1;
+  const sorted = [...grouped.values()].sort((a, b) => {
+    const aTop = isSI(a.main.H) || isSI(a.main.I) ? 0 : 1;
+    const bTop = isSI(b.main.H) || isSI(b.main.I) ? 0 : 1;
     return aTop - bTop;
   });
 
-  // Ogni risultato = una dtbl identica a quella del dettaglio, cliccabile
+  // Ogni risultato = una card per medico (deduplicata)
   let h = '';
-  sorted.forEach((r, i) => {
-    const isPrimario    = isSI(r.H);
+  sorted.forEach((g, i) => {
+    const r = g.main;
+    const isPrimario     = isSI(r.H);
     const isResponsabile = isSI(r.I);
-    const isHighlighted = isPrimario || isResponsabile;
+    const isHighlighted  = isPrimario || isResponsabile;
+    const hasDups        = g.all.length > 1;
 
-    // Bordo: blu scuro se selezionato, blu chiaro se evidenziato, grigio altrimenti
     const borderColor = i === selRow ? 'var(--blue)' : isHighlighted ? '#93c5fd' : 'var(--g200)';
-    // Sfondo azzurro solo per Primario (H), bianco per Responsabile (I)
     const bgStyle = isPrimario ? 'background:#eff6ff;' : '';
 
-    // Colonne extra condizionali
     const cols = [...baseCols];
-    if(isPrimario)    cols.push(['H','Primario']);
+    if(isPrimario)     cols.push(['H','Primario']);
     if(isResponsabile) cols.push(['I','Responsabile']);
+    if(hasDups) cols.push(['_reps','Reparti']);
 
     h += '<div id="rc-'+i+'" onclick="selectAndDetail('+i+')" style="cursor:pointer;margin-bottom:14px;border-radius:var(--r);overflow:hidden;border:2px solid '+borderColor+';'+bgStyle+'">'
        + '<div class="tw"><table class="dtbl"><tbody>';
     cols.forEach(([k,lbl]) => {
       const cellStyle = (k === 'H' || k === 'I') ? ' style="color:var(--blue);font-weight:700"' : '';
-      const cellVal = k==='N' ? escEmail(r[k]) : (esc(r[k])||'<span style="color:var(--g300)">—</span>');
+      let cellVal;
+      if(k === '_reps'){
+        cellVal = g.all.map(row => esc(row.B||'') + (row.E ? ' — '+esc(row.E) : '')).join('<br>');
+      } else {
+        cellVal = k==='N' ? escEmail(r[k]) : (esc(r[k])||'<span style="color:var(--g300)">—</span>');
+      }
       h += '<tr><td>'+lbl+'</td><td'+cellStyle+'>'+cellVal+'</td></tr>';
     });
     h += '</tbody></table></div></div>';
   });
   el('res-body').innerHTML = h;
 
-  // Aggiorna il mapping indice visivo → indice in results originale
+  // Aggiorna il mapping indice visivo → gruppo
   window._sortedRes = sorted;
 }
 
 
 function selectAndDetail(i){
-  // Aggiorna bordo selezione su tutti i blocchi
-  const sorted = window._sortedRes || results;
+  const sorted = window._sortedRes || [];
   sorted.forEach((_,j)=>{
     const rc=el('rc-'+j);
     if(!rc) return;
-    const r = sorted[j];
+    const g = sorted[j];
+    const r = g.main || g;
     const isSI = v => (v||'').trim().toUpperCase()==='SI';
     const hi = isSI(r.H)||isSI(r.I);
-    rc.style.border='2px solid '+(hi?'#93c5fd':'var(--g200))');
+    rc.style.border='2px solid '+(hi?'#93c5fd':'var(--g200)');
   });
   const rc=el('rc-'+i);
   if(rc) rc.style.border='2px solid var(--blue)';
   selRow=i;
-  // goDetail usa results[selRow] — puntiamo alla riga corretta nel sorted
   window._selSorted = i;
   el('btn-det').disabled=false;
   goDetail();
@@ -1401,18 +1423,19 @@ function pickRow(i){ selectAndDetail(i); }
 // ── DETAIL ─────────────────────────────────────────────────────
 function goDetail(){
   if(selRow === null) return;
-  const sorted = window._sortedRes || results;
-  const r = sorted[window._selSorted !== undefined ? window._selSorted : selRow];
+  const sorted = window._sortedRes || [];
+  const idx = window._selSorted !== undefined ? window._selSorted : selRow;
+  const g = sorted[idx];
+  const r = (g && g.main) ? g.main : (g || results[idx]);
+  const allRows = (g && g.all) ? g.all : [r];
+
   el('d-lbl').textContent  = (lastS1 || 'Specializzazione').toUpperCase();
   el('d-name').textContent = r.G || '—';
   el('d-spec').textContent = r.C || '';
-  el('d-tbody').innerHTML  = [
+
+  // Campi fissi (dalla riga principale)
+  const fixedCols = [
     ['A','Principali Specializzazioni Mediche (HLC-9)'],
-    ['C','Specializzazione Secondaria'],
-    ['B','Reparto Ospedaliero'],
-    ['D','Città'],
-    ['E','Struttura'],
-    ['F','Ubicazione'],
     ['G','Professionista'],
     ['H','Primario'],
     ['I','Responsabile'],
@@ -1421,7 +1444,33 @@ function goDetail(){
     ['L','Membro che Segue'],
     ['M','Telefono Contatto'],
     ['N','E-mail']
-  ].map(([c,l]) => '<tr><td>'+l+'</td><td>'+(c==='N' ? escEmail(r[c]) : c==='L' ? escMembro(r[c]) : (esc(r[c])||'<span style="color:var(--g300)">—</span>'))+('</td></tr>')).join('');
+  ];
+
+  let rows = fixedCols.map(([c,l]) =>
+    '<tr><td>'+l+'</td><td>'+(c==='N' ? escEmail(r[c]) : c==='L' ? escMembro(r[c]) : (esc(r[c])||'<span style="color:var(--g300)">—</span>'))+'</td></tr>'
+  ).join('');
+
+  // Reparti: una sezione per ogni riga del medico
+  if(allRows.length > 1){
+    rows += '<tr><td colspan="2" style="background:var(--navy);color:#fff;font-size:.7rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:8px 16px">Reparti di riferimento</td></tr>';
+  }
+  allRows.forEach((row, ri) => {
+    if(allRows.length > 1 && ri > 0){
+      rows += '<tr><td colspan="2" style="height:1px;background:var(--g200);padding:0"></td></tr>';
+    }
+    const repCols = [
+      ['C','Specializzazione Secondaria'],
+      ['B','Reparto Ospedaliero'],
+      ['D','Città'],
+      ['E','Struttura'],
+      ['F','Ubicazione'],
+    ];
+    repCols.forEach(([c,l]) => {
+      rows += '<tr><td>'+l+'</td><td>'+(esc(row[c])||'<span style="color:var(--g300)">—</span>')+'</td></tr>';
+    });
+  });
+
+  el('d-tbody').innerHTML = rows;
   goTo('detail');
 }
 
