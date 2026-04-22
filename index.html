@@ -1253,7 +1253,7 @@ function doSearch(){
   ['i-s1','i-rp','i-s2','i-st','i-mb'].forEach(id => el(id).classList.remove('err-i'));
   el('er-empty').classList.remove('on');
 
-  if(!s1 && !rp && !s2 && !ct && !mb){ el('er-empty').classList.add('on'); return; }
+  if(!s1 && !rp && !s2 && !st && !mb){ el('er-empty').classList.add('on'); return; }
 
   // Step 3: filtra — se un campo non ha match lo segnala ma NON blocca la ricerca
   let f = sheetData;
