@@ -1348,10 +1348,17 @@ function renderResData(data){
       grouped.set(key, { main: r, all: [r] });
     } else {
       const g = grouped.get(key);
-      g.all.push(r);
-      // Aggiorna la riga principale se questa ha priorità maggiore
-      if(isSI(r.H) && !isSI(g.main.H)) g.main = r;
-      else if(isSI(r.I) && !isSI(g.main.H) && !isSI(g.main.I)) g.main = r;
+      // Controlla se la riga è identica a una già presente (tutte le colonne A-N)
+      const cols = 'ABCDEFGHIJKLMN'.split('');
+      const isDupe = g.all.some(existing =>
+        cols.every(c => (existing[c]||'').trim() === (r[c]||'').trim())
+      );
+      if(!isDupe){
+        g.all.push(r);
+        // Aggiorna la riga principale se questa ha priorità maggiore
+        if(isSI(r.H) && !isSI(g.main.H)) g.main = r;
+        else if(isSI(r.I) && !isSI(g.main.H) && !isSI(g.main.I)) g.main = r;
+      }
     }
   });
 
@@ -1433,21 +1440,16 @@ function goDetail(){
   el('d-name').textContent = r.G || '—';
   el('d-spec').textContent = r.C || '';
 
-  // Campi fissi (dalla riga principale)
-  const fixedCols = [
+  // Campi di testa (dalla riga principale)
+  const headCols = [
     ['A','Principali Specializzazioni Mediche (HLC-9)'],
     ['G','Professionista'],
     ['H','Primario'],
     ['I','Responsabile'],
-    ['J','Follow Up'],
-    ['K','Collabora'],
-    ['L','Membro che Segue'],
-    ['M','Telefono Contatto'],
-    ['N','E-mail']
   ];
 
-  let rows = fixedCols.map(([c,l]) =>
-    '<tr><td>'+l+'</td><td>'+(c==='N' ? escEmail(r[c]) : c==='L' ? escMembro(r[c]) : (esc(r[c])||'<span style="color:var(--g300)">—</span>'))+'</td></tr>'
+  let rows = headCols.map(([c,l]) =>
+    '<tr><td>'+l+'</td><td>'+(esc(r[c])||'<span style="color:var(--g300)">—</span>')+'</td></tr>'
   ).join('');
 
   // Reparti: una sezione per ogni riga del medico
@@ -1469,6 +1471,19 @@ function goDetail(){
       rows += '<tr><td>'+l+'</td><td>'+(esc(row[c])||'<span style="color:var(--g300)">—</span>')+'</td></tr>';
     });
   });
+
+  // Campi finali in fondo (dalla riga principale)
+  const bottomCols = [
+    ['J','Follow Up'],
+    ['K','Collabora'],
+    ['L','Membro che Segue'],
+    ['M','Telefono Contatto'],
+    ['N','E-mail']
+  ];
+  rows += '<tr><td colspan="2" style="height:1px;background:var(--g200);padding:0"></td></tr>';
+  rows += bottomCols.map(([c,l]) =>
+    '<tr><td>'+l+'</td><td>'+(c==='N' ? escEmail(r[c]) : c==='L' ? escMembro(r[c]) : (esc(r[c])||'<span style="color:var(--g300)">—</span>'))+'</td></tr>'
+  ).join('');
 
   el('d-tbody').innerHTML = rows;
   goTo('detail');
