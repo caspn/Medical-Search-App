@@ -603,7 +603,6 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
         <span class="fbar-lbl">Primario o Responsabile</span>
         <label class="fchk">
           <input type="checkbox" id="f-pri" onchange="applyFilters()"/>
-          <span>Mostra solo</span>
         </label>
       </div>
       <div class="fsep"></div>
@@ -1296,9 +1295,9 @@ function applyFilters(){
   }
 
   if(kChecked.length){
+    const norm = s => (s||'').trim().toUpperCase().replace(/[.\s]/g,'');
     filtered = filtered.filter(r => {
-      const k = (r.K||'').trim().toUpperCase();
-      return kChecked.some(v => k === v.toUpperCase());
+      return kChecked.some(v => norm(r.K) === norm(v));
     });
   }
 
