@@ -34,8 +34,10 @@ body{font-family:'Outfit',sans-serif;background:var(--g50);color:var(--navy);min
 .fchk input[type=checkbox]:checked + span{color:var(--blue)}
 .fsep{width:1px;height:16px;background:var(--g200);flex-shrink:0}
 @media(max-width:600px){
-  .fbar{flex-direction:column;align-items:flex-start;gap:10px}
-  .fbar-right{width:100%}
+  .fbar{flex-direction:column;align-items:flex-end;gap:4px}
+  .fbar-left{width:100%;justify-content:flex-end}
+  .fbar-right{width:100%;justify-content:flex-end}
+  .fsep{display:none}
 }
 /* HEADER */
 .hdr{background:linear-gradient(135deg,var(--navy),var(--navy2));padding:0 24px;height:64px;
