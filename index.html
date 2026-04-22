@@ -1435,9 +1435,8 @@ function goDetail(){
   el('d-name').textContent = r.G || '—';
   el('d-spec').textContent = r.C || '';
 
-  // Campi di testa (dalla riga principale)
+  // Campi di testa (dalla riga principale) — senza Spec. principale
   const headCols = [
-    ['A','Principali Specializzazioni Mediche (HLC-9)'],
     ['G','Professionista'],
     ['H','Primario'],
     ['I','Responsabile'],
@@ -1454,6 +1453,7 @@ function goDetail(){
       rows += '<tr><td colspan="2" style="height:3px;background:var(--g300);padding:0"></td></tr>';
     }
     const repCols = [
+      ['A','Principali Specializzazioni Mediche (HLC-9)'],
       ['C','Specializzazione Secondaria'],
       ['B','Reparto Ospedaliero'],
       ['D','Città'],
