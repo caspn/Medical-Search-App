@@ -1384,18 +1384,13 @@ function renderResData(data){
     const cols = [...baseCols];
     if(isPrimario)     cols.push(['H','Primario']);
     if(isResponsabile) cols.push(['I','Responsabile']);
-    if(hasDups) cols.push(['_reps','Reparti']);
 
     h += '<div id="rc-'+i+'" onclick="selectAndDetail('+i+')" style="cursor:pointer;margin-bottom:14px;border-radius:var(--r);overflow:hidden;border:2px solid '+borderColor+';'+bgStyle+'">'
        + '<div class="tw"><table class="dtbl"><tbody>';
     cols.forEach(([k,lbl]) => {
       const cellStyle = (k === 'H' || k === 'I') ? ' style="color:var(--blue);font-weight:700"' : '';
       let cellVal;
-      if(k === '_reps'){
-        cellVal = g.all.map(row => esc(row.B||'') + (row.E ? ' — '+esc(row.E) : '')).join('<br>');
-      } else {
-        cellVal = k==='N' ? escEmail(r[k]) : (esc(r[k])||'<span style="color:var(--g300)">—</span>');
-      }
+      cellVal = k==='N' ? escEmail(r[k]) : (esc(r[k])||'<span style="color:var(--g300)">—</span>');
       h += '<tr><td>'+lbl+'</td><td'+cellStyle+'>'+cellVal+'</td></tr>';
     });
     h += '</tbody></table></div></div>';
@@ -1453,9 +1448,7 @@ function goDetail(){
   ).join('');
 
   // Reparti: una sezione per ogni riga del medico
-  if(allRows.length > 1){
-    rows += '<tr><td colspan="2" style="background:var(--navy);color:#fff;font-size:.7rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:8px 16px">Reparti di riferimento</td></tr>';
-  }
+  rows += '<tr><td colspan="2" style="background:var(--navy);color:#fff;font-size:.7rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:8px 16px">Reparti di riferimento</td></tr>';
   allRows.forEach((row, ri) => {
     if(allRows.length > 1 && ri > 0){
       rows += '<tr><td colspan="2" style="height:1px;background:var(--g200);padding:0"></td></tr>';
@@ -1480,7 +1473,7 @@ function goDetail(){
     ['M','Telefono Contatto'],
     ['N','E-mail']
   ];
-  rows += '<tr><td colspan="2" style="height:1px;background:var(--g200);padding:0"></td></tr>';
+  rows += '<tr><td colspan="2" style="background:var(--navy);color:#fff;font-size:.7rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:8px 16px">Dati utili di contatto</td></tr>';
   rows += bottomCols.map(([c,l]) =>
     '<tr><td>'+l+'</td><td>'+(c==='N' ? escEmail(r[c]) : c==='L' ? escMembro(r[c]) : (esc(r[c])||'<span style="color:var(--g300)">—</span>'))+'</td></tr>'
   ).join('');
