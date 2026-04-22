@@ -20,6 +20,23 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:'Outfit',sans-serif;background:var(--g50);color:var(--navy);min-height:100vh;line-height:1.5}
 
+
+/* FILTER BAR */
+.fbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  background:var(--g50);border:1px solid var(--g200);border-radius:var(--rs);
+  padding:10px 14px;margin-bottom:14px}
+.fbar-left{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.fbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fbar-lbl{font-size:.75rem;font-weight:700;color:var(--navy);white-space:nowrap}
+.fchk{display:inline-flex;align-items:center;gap:5px;cursor:pointer;
+  font-size:.75rem;font-weight:600;color:var(--g700);white-space:nowrap;user-select:none}
+.fchk input[type=checkbox]{width:15px;height:15px;accent-color:var(--blue);cursor:pointer;flex-shrink:0}
+.fchk input[type=checkbox]:checked + span{color:var(--blue)}
+.fsep{width:1px;height:16px;background:var(--g200);flex-shrink:0}
+@media(max-width:600px){
+  .fbar{flex-direction:column;align-items:flex-start;gap:10px}
+  .fbar-right{width:100%}
+}
 /* HEADER */
 .hdr{background:linear-gradient(135deg,var(--navy),var(--navy2));padding:0 24px;height:64px;
   display:flex;align-items:center;justify-content:center;position:sticky;top:0;z-index:300;box-shadow:0 2px 20px rgba(0,0,0,.28)}
@@ -575,11 +592,28 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
   <div class="card">
     <div class="ptitle">Risultati della Ricerca</div>
     <div class="psub" id="res-sub"></div>
-    <div class="brow" style="margin-bottom:16px;margin-top:0">
+    <div class="brow" style="margin-bottom:12px;margin-top:0">
       <button class="btn bg" onclick="goTo('input')">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
         Nuova Ricerca
       </button>
+    </div>
+    <div class="fbar">
+      <div class="fbar-left">
+        <span class="fbar-lbl">Primario o Responsabile</span>
+        <label class="fchk">
+          <input type="checkbox" id="f-pri" onchange="applyFilters()"/>
+          <span>Mostra solo</span>
+        </label>
+      </div>
+      <div class="fsep"></div>
+      <div class="fbar-right">
+        <span class="fbar-lbl">Collaborazione</span>
+        <label class="fchk"><input type="checkbox" id="f-ka" value="A" onchange="applyFilters()"/><span>A</span></label>
+        <label class="fchk"><input type="checkbox" id="f-kb" value="B" onchange="applyFilters()"/><span>B</span></label>
+        <label class="fchk"><input type="checkbox" id="f-kc" value="C" onchange="applyFilters()"/><span>C</span></label>
+        <label class="fchk"><input type="checkbox" id="f-kdc" value="D.C" onchange="applyFilters()"/><span>D.C</span></label>
+      </div>
     </div>
     <div id="res-body"></div>
     <div class="divider"></div>
@@ -1246,13 +1280,46 @@ function doSearch(){
   renderRes();
   goTo('results');
 }
+// ── FILTRI RISULTATI ──────────────────────────────────────────
+function applyFilters(){
+  const priOnly  = el('f-pri')  && el('f-pri').checked;
+  const kChecked = ['f-ka','f-kb','f-kc','f-kdc']
+    .filter(id => el(id) && el(id).checked)
+    .map(id => el(id).value);
+
+  const isSIv = v => (v||'').trim().toUpperCase() === 'SI';
+
+  let filtered = results;
+
+  if(priOnly){
+    filtered = filtered.filter(r => isSIv(r.H) || isSIv(r.I));
+  }
+
+  if(kChecked.length){
+    filtered = filtered.filter(r => {
+      const k = (r.K||'').trim().toUpperCase();
+      return kChecked.some(v => k === v.toUpperCase());
+    });
+  }
+
+  // Aggiorna contatore e ri-renderizza con i filtri attivi
+  el('res-sub').textContent = filtered.length + ' risultat' + (filtered.length === 1 ? 'o trovato' : 'i trovati');
+  renderResData(filtered);
+}
+
 // ── RISULTATI con grafica dtbl (identica al dettaglio) ─────────
 function renderRes(){
-  el('res-sub').textContent = results.length + ' risultat' + (results.length === 1 ? 'o trovato' : 'i trovati');
+  // Reset filtri ad ogni nuova ricerca
+  ['f-pri','f-ka','f-kb','f-kc','f-kdc'].forEach(id => { if(el(id)) el(id).checked = false; });
+  applyFilters();
+}
+
+function renderResData(data){
+  el('res-sub').textContent = data.length + ' risultat' + (data.length === 1 ? 'o trovato' : 'i trovati');
   el('btn-det').disabled = true;
   selRow = null;
 
-  if(!results.length){
+  if(!data.length){
     el('res-body').innerHTML = '<div class="nores"><p>Nessun risultato trovato</p></div>';
     return;
   }
@@ -1270,7 +1337,7 @@ function renderRes(){
   const isSI = v => (v || '').trim().toUpperCase() === 'SI';
 
   // Ordina: righe con H=SI o I=SI prima, poi le altre
-  const sorted = [...results].sort((a, b) => {
+  const sorted = [...data].sort((a, b) => {
     const aTop = isSI(a.H) || isSI(a.I) ? 0 : 1;
     const bTop = isSI(b.H) || isSI(b.I) ? 0 : 1;
     return aTop - bTop;
