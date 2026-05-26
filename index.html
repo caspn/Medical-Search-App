@@ -21,6 +21,17 @@
 body{font-family:'Outfit',sans-serif;background:var(--g50);color:var(--navy);min-height:100vh;line-height:1.5}
 
 
+/* SEARCH NAME BAR */
+.fsearch{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.fsearch-inp{flex:1;padding:8px 12px;border:2px solid var(--g200);border-radius:var(--rs);
+  font-size:.85rem;color:var(--navy);outline:none;transition:border .15s}
+.fsearch-inp:focus{border-color:var(--blue)}
+.fsearch-inp::placeholder{color:var(--g400)}
+.fsearch-clr{background:none;border:none;cursor:pointer;padding:4px 6px;color:var(--g400);
+  display:none;align-items:center;justify-content:center;border-radius:6px}
+.fsearch-clr.on{display:flex}
+.fsearch-clr:hover{color:var(--navy);background:var(--g100)}
+
 /* FILTER BAR */
 .fbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
   background:var(--g50);border:1px solid var(--g200);border-radius:var(--rs);
@@ -598,6 +609,13 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
       <button class="btn bg" onclick="goTo('input')">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
         Nuova Ricerca
+      </button>
+    </div>
+    <div class="fsearch">
+      <input class="fsearch-inp" type="text" id="f-name" placeholder="Cerca per nome del medico…"
+        oninput="onNameSearch()" autocomplete="off" autocorrect="off" spellcheck="false"/>
+      <button class="fsearch-clr" id="f-name-clr" onclick="clearNameSearch()" title="Cancella">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
     <div class="fbar">
@@ -1282,6 +1300,20 @@ function doSearch(){
   goTo('results');
 }
 // ── FILTRI RISULTATI ──────────────────────────────────────────
+function onNameSearch(){
+  const val = (el('f-name') && el('f-name').value) || '';
+  const clr = el('f-name-clr');
+  if(clr) clr.classList.toggle('on', val.trim().length > 0);
+  applyFilters();
+}
+
+function clearNameSearch(){
+  if(el('f-name')) el('f-name').value = '';
+  const clr = el('f-name-clr');
+  if(clr) clr.classList.remove('on');
+  applyFilters();
+}
+
 function applyFilters(){
   const priOnly  = el('f-pri')  && el('f-pri').checked;
   const kChecked = ['f-ka','f-kb','f-kc','f-kdc']
@@ -1290,7 +1322,12 @@ function applyFilters(){
 
   const isSIv = v => (v||'').trim().toUpperCase() === 'SI';
 
+  const nameQ = (el('f-name') ? el('f-name').value : '').trim().toLowerCase();
   let filtered = results;
+
+  if(nameQ){
+    filtered = filtered.filter(r => (r.G||'').toLowerCase().includes(nameQ));
+  }
 
   if(priOnly){
     filtered = filtered.filter(r => isSIv(r.H) || isSIv(r.I));
@@ -1312,6 +1349,8 @@ function applyFilters(){
 function renderRes(){
   // Reset filtri ad ogni nuova ricerca
   ['f-pri','f-ka','f-kb','f-kc','f-kdc'].forEach(id => { if(el(id)) el(id).checked = false; });
+  if(el('f-name')){ el('f-name').value = ''; }
+  const fclr = el('f-name-clr'); if(fclr) fclr.classList.remove('on');
   applyFilters();
 }
 
