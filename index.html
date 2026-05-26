@@ -564,6 +564,20 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
       <div class="em" id="er-st">Nessuna corrispondenza trovata</div>
     </div>
 
+
+    <div class="fg">
+      <label>Cerca per nome del medico</label>
+      <div style="position:relative;display:flex;align-items:center">
+        <input class="ddinp" type="text" id="i-gn" placeholder="Digita nome o cognome…"
+          autocomplete="off" autocorrect="off" spellcheck="false"
+          oninput="el('dc-gn').classList.toggle('on',this.value.length>0)"
+          style="padding-right:36px"/>
+        <button class="ddib ddclr" id="dc-gn" onclick="el('i-gn').value='';el('dc-gn').classList.remove('on')" tabindex="-1" style="position:absolute;right:6px">
+          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+
     <div class="fg">
       <label>Membro che Segue</label>
       <div class="ddw">
@@ -1241,6 +1255,7 @@ document.addEventListener('mousedown', e => {
 // ── SEARCH ─────────────────────────────────────────────────────
 let results = [], selRow = null, lastS1 = '';
 function resetSearch(){
+  if(el('i-gn')){ el('i-gn').value=''; el('dc-gn').classList.remove('on'); }
   Object.keys(DDS).forEach(k => {
     const c = DDS[k]; el(c.inp).value = ''; el(c.clr).classList.remove('on');
     el('er-'+k).classList.remove('on'); el(c.inp).classList.remove('err-i'); ddClose(k);
@@ -1265,13 +1280,14 @@ function doSearch(){
   const s2 = el('i-s2').value.trim();
   const st = el('i-st').value.trim();
   const mb = el('i-mb').value.trim();
+  const gn = (el('i-gn') ? el('i-gn').value : '').trim().toLowerCase();
 
   // Pulisci stati errore
   ['er-s1','er-rp','er-s2','er-st','er-mb'].forEach(id => el(id).classList.remove('on'));
   ['i-s1','i-rp','i-s2','i-st','i-mb'].forEach(id => el(id).classList.remove('err-i'));
   el('er-empty').classList.remove('on');
 
-  if(!s1 && !rp && !s2 && !st && !mb){ el('er-empty').classList.add('on'); return; }
+  if(!s1 && !rp && !s2 && !st && !mb && !gn){ el('er-empty').classList.add('on'); return; }
 
   // Step 3: filtra — se un campo non ha match lo segnala ma NON blocca la ricerca
   let f = sheetData;
@@ -1291,6 +1307,7 @@ function doSearch(){
   flt('C','i-s2','er-s2',s2);
   flt('E','i-st','er-st',st);
   flt('L','i-mb','er-mb',mb);
+  if(gn){ f = f.filter(r => (r.G||'').toLowerCase().includes(gn)); }
 
   // Step 4: mostra sempre i risultati, anche se alcuni campi hanno errore
   results = f;
