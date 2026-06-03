@@ -366,9 +366,22 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
           Apri nel browser
         </a>
       </div>
+
+    <div class="fg" style="margin-top:16px">
+      <label>Link Foglio Membri (telefoni)</label>
+      <input class="inp" id="a-mbr" type="url" placeholder="https://docs.google.com/spreadsheets/…" style="width:100%"/>
+      <div style="font-size:.72rem;color:var(--g500);margin-top:4px">Colonna A = Nome, Colonna B = Telefono. Riga 1 = intestazione.</div>
+    </div>
       <div class="tres" id="atr-sh"></div>
     </div>
 
+    <div class="fg" style="margin-top:16px">
+      <label>Link Foglio Membri (telefoni)</label>
+      <input class="inp" type="url" id="adm-mbr" placeholder="https://docs.google.com/spreadsheets/…"/>
+      <div style="font-size:.72rem;color:var(--g500);margin-top:4px">
+        Foglio con colonna A = Nome membro, colonna B = Numero telefono. Intestazione in riga 1.
+      </div>
+    </div>
     <div class="obox" id="a-ok">✔ Impostazioni salvate con successo!</div>
     <div class="wbox" id="a-warn"></div>
     <div id="a-goto" style="display:none;margin-top:10px;margin-bottom:4px">
@@ -691,7 +704,7 @@ input[type=checkbox]{width:17px;height:17px;accent-color:var(--blue);cursor:poin
 'use strict';
 
 // ── CHIAVI LOCALSTORAGE ────────────────────────────────────────
-const K = { A:'_adm', P:'_pub', S:'_sht', D:'_done' };
+const K = { A:'_adm', P:'_pub', S:'_sht', D:'_done', M:'_mbr' };
 
 // ── VALORI DI CONFIGURAZIONE ───────────────────────────────────
 // I valori sono caricati da config.js (offuscati) e deoffuscati a runtime.
@@ -755,21 +768,33 @@ function escEmail(t){
     : v;
 }
 
+// MEMBRO_TEL: fallback locale (sovrascitto dai dati del Google Sheet membri se configurato)
 const MEMBRO_TEL = {
-  'ANTONIO AMEDURI':    '+393487556586',
-  'ALEX MARCHETTI':     '+393934913634',
-  'ANTONIO GIANNOTTI':  '+393383739847',
-  'BENIAMINO MATARRESE':'+393770456907',
-  'GIOVANNI TORNESE':   '+393935477729',
-  'LUCA MIO':           '+393491460628',
-  'ROBERTO SANSON':     '+393472292754',
-  'STEFANO SCIAN':      '+393203314703'
+  'ANTONIO AMEDURI':       '+393487556586',
+  'ALEX MARCHETTI':        '+393934913634',
+  'ANTONIO GIANNOTTI':     '+393383739847',
+  'LUIGI CULMONE':         '+393453750369',
+  'GIOVANNI TORNESE':      '+393935477729',
+  'LUCA MIO':              '+393491460628',
+  'ROBERTO SANSON':        '+393472292754',
+  'STEFANO SCIAN':         '+393203314703',
+  'DORIANO COLOMBEROTTO':  '+393335845583',
+  'KELEB VAN OWUSU':       '+393806890985'
 };
+
+// Dati membri caricati dal Google Sheet (sovrascrive MEMBRO_TEL se presenti)
+let membriData = null;
+
+function getMemberPhone(name){
+  const key = (name||'').trim().toUpperCase();
+  if(membriData && membriData[key]) return membriData[key];
+  return MEMBRO_TEL[key] || null;
+}
 
 function escMembro(t){
   const v = (t||'').trim();
   if(!v) return '<span style="color:var(--g300)">—</span>';
-  const tel = MEMBRO_TEL[v.toUpperCase()];
+  const tel = getMemberPhone(v);
   if(!tel) return esc(v);
   const display = tel.replace(/(\+39)(\d{3})(\d{3})(\d+)/, '$1 $2 $3 $4');
   return '<a href="tel:'+tel+'" onclick="event.stopPropagation()" style="color:var(--blue);text-decoration:underline">'+esc(v)+'</a>'
@@ -854,6 +879,7 @@ function doSetupSave(){
   ss(K.P, p1);
   ss(K_PUBVER, '1'); // versione iniziale password pubblica
   ss(K.S, sh);
+  if(el('a-mbr')) ss(K.M, el('a-mbr').value.trim());
   ss(K.D, '1');
   sheetData = [];
   alert("✔ Configurazione salvata! Ora accedi con la password.");
@@ -1058,6 +1084,9 @@ async function loadSheet(){
     }).filter(r => r.A || r.B || r.C || r.D);
     if(!sheetData.length) throw new Error('Nessuna riga valida trovata (le colonne A-D sono tutte vuote?)');
     showDbg('✅ Foglio caricato: ' + sheetData.length + ' righe');
+    // Carica foglio membri (URL configurato o default)
+    const mbrUrl = localStorage.getItem(K.M) || 'https://docs.google.com/spreadsheets/d/101mdmDLtiU42NjQpxTkBLduDTiee7EcFmdH2Fwx2vpg/export?format=csv&id=101mdmDLtiU42NjQpxTkBLduDTiee7EcFmdH2Fwx2vpg&gid=0';
+    loadMembri(mbrUrl);
   } catch(e){
     sheetData = [];
     showDbg('❌ ERRORE: ' + e.message);
@@ -1536,6 +1565,34 @@ function goDetail(){
 
   el('d-tbody').innerHTML = rows;
   goTo('detail');
+}
+
+// ── CARICAMENTO FOGLIO MEMBRI ─────────────────────────────────
+async function loadMembri(sheetUrl){
+  if(!sheetUrl) return;
+  try{
+    const id = shtId(sheetUrl);
+    // Estrae il gid dal URL se presente
+    const gidM = sheetUrl.match(/gid=(\d+)/);
+    const gid  = gidM ? gidM[1] : '0';
+    const url  = 'https://docs.google.com/spreadsheets/d/'+id+'/export?format=csv&id='+id+'&gid='+gid;
+    const resp = await fetch(url);
+    if(!resp.ok) return;
+    const text = await resp.text();
+    const rows = parseCSV(text).slice(1); // salta intestazione
+    const map  = {};
+    rows.forEach(r => {
+      const nome = (r[0]||'').trim().toUpperCase();
+      const tel  = (r[1]||'').trim().replace(/\s/g,'');
+      if(nome && tel) map[nome] = tel;
+    });
+    if(Object.keys(map).length > 0){
+      membriData = map;
+      console.log('Membri caricati dal foglio:', Object.keys(map).length);
+    }
+  } catch(e){
+    console.warn('Foglio membri non caricato:', e);
+  }
 }
 
 // ── LINK TEST ENGINE ───────────────────────────────────────────
